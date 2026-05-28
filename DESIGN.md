@@ -457,8 +457,9 @@ Pattern: short, warm, factual. Never apologetic. Never "let's get started!" ener
 
 | Context | Copy | Visual |
 |---|---|---|
-| No updates today | *Inga uppdateringar än idag.* | Small icon, `--text-muted` |
-| No circles yet | *Du är inte med i någon krets än. En anhörig kan bjuda in dig.* | No CTA — they can't fix this themselves |
+| No updates today | *Inga uppdateringar än idag.* | Text only, `--text-muted` |
+| First-time user (no circle yet) | *Välkommen. Du är inte med i någon krets än.* | Primary CTA: *Skapa en krets* |
+| Awaiting invitation (no circle yet) | *Du är inte med i någon krets än. En anhörig kan bjuda in dig.* | No CTA — they can't fix this themselves |
 | No reminders | *Inga påminnelser just nu.* | Nothing else |
 
 ### 8.11 Loading states
