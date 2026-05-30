@@ -364,7 +364,7 @@ The defining component for §5.1 daily update.
   <text x="585" y="120" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="500" fill="#5B6770">Orolig</text>
 </svg>
 
-**Mood:** four options *Glad / Lugn / Trött / Orolig*. Single-select. Selected pill fills with `--primary-soft`, 2 px `--primary` border, label weight 600. Each pill minimum 150 × 80 px, gap 8 px. Emoji size 28 px.
+**Mood:** four options *Glad / Lugn / Trött / Orolig*. Single-select. Selected pill fills with `--primary-soft`, 2 px `--primary` border, label weight 600. Pills fill available row width via grid-cols-4 (mood) or grid-cols-3 (sleep, energy). Height minimum 80 px, gap 8 px. On viewports ≥ 640 px the row caps at max-w-content so pills don't stretch wider than ~150 px each. Emoji size 28 px.
 
 **Sleep:** three options *Bra / Okej / Dålig*. Same pattern, no emoji.
 
@@ -998,6 +998,7 @@ When a non-obvious design decision is made, append it here. Each entry: date, de
 - **2026-05 — Save lives in the app bar, not at the bottom of forms.** Considered: bottom-fixed CTA. Rejected because bottom CTAs are reserved for primary screens; on forms the user reaches Save by scrolling to the end, which mirrors their cognitive flow.
 - **2026-05 — Email as default notification channel, push opt-in.** Considered: push-first. Rejected because push requires a permission prompt and PWA install on iOS — friction that contradicts calm.
 - **2026-05 — No month-view calendar.** Considered: standard month grid. Rejected because families plan around weeks, and month grids are visually dense.
+- **2026-05 — Pill picker widths fluid on mobile.** Considered: fixed 150 px minimum per pill. Rejected because four pills plus gaps overflow a 360 px viewport. Pills now fill the row via grid; tap area still clears 48 × 48 on any phone.
 
 ---
 
