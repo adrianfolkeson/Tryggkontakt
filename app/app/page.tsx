@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
@@ -218,22 +219,37 @@ export default async function AppPage() {
           </section>
         )}
 
-        {upcomingReminders.length > 0 && (
-          <section
-            aria-labelledby="reminders-heading"
-            className="mt-8"
-          >
-            <div className="flex items-baseline justify-between">
-              <h2 id="reminders-heading" className="text-h2 text-text">
-                Påminnelser
-              </h2>
+        <section
+          aria-labelledby="reminders-heading"
+          className="mt-8"
+        >
+          <div className="flex items-baseline justify-between">
+            <h2 id="reminders-heading" className="text-h2 text-text">
+              Påminnelser
+            </h2>
+            <div className="flex items-center gap-3">
               <Link
-                href="/app/paminnelser"
-                className="text-meta text-primary font-medium"
+                href="/app/paminnelser/ny"
+                aria-label="Lägg till påminnelse"
+                className="w-12 h-12 -my-3 flex items-center justify-center text-primary"
               >
-                Se alla
+                <Plus size={20} strokeWidth={1.75} aria-hidden="true" />
               </Link>
+              {upcomingReminders.length > 0 && (
+                <Link
+                  href="/app/paminnelser"
+                  className="text-meta text-primary font-medium"
+                >
+                  Se alla
+                </Link>
+              )}
             </div>
+          </div>
+          {upcomingReminders.length === 0 ? (
+            <p className="mt-3 text-body text-text-muted">
+              Inga påminnelser just nu.
+            </p>
+          ) : (
             <ul className="mt-3 flex flex-col gap-2">
               {upcomingReminders.map((r) => (
                 <li key={r.id}>
@@ -256,8 +272,8 @@ export default async function AppPage() {
                 </li>
               ))}
             </ul>
-          </section>
-        )}
+          )}
+        </section>
 
         <div className="mt-12">
           <Link
