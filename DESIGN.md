@@ -999,6 +999,7 @@ When a non-obvious design decision is made, append it here. Each entry: date, de
 - **2026-05 — Email as default notification channel, push opt-in.** Considered: push-first. Rejected because push requires a permission prompt and PWA install on iOS — friction that contradicts calm.
 - **2026-05 — No month-view calendar.** Considered: standard month grid. Rejected because families plan around weeks, and month grids are visually dense.
 - **2026-05 — Pill picker widths fluid on mobile.** Considered: fixed 150 px minimum per pill. Rejected because four pills plus gaps overflow a 360 px viewport. Pills now fill the row via grid; tap area still clears 48 × 48 on any phone.
+- **2026-06 — Week math walks via Stockholm date strings, not UTC ms.** Considered: subtract `dayOffset * 86_400_000` ms from a UTC midnight. Rejected because that lands the wrong wall-clock day during DST transition weeks (late March / late October), grouping activities under the wrong header twice a year. We compute today's Stockholm date string, decrement whole days as strings, then re-parse each boundary via `parseStockholmDateTime` so the per-day Stockholm UTC offset is correct.
 
 ---
 

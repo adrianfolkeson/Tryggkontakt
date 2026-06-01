@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Calendar, House, User } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+
+import BottomNav from "./_components/bottom-nav";
 
 const MOOD_INLINE: Record<string, { emoji: string; label: string }> = {
   happy: { emoji: "😌", label: "glad" },
@@ -63,47 +64,6 @@ function formatUpdateTime(d: Date, now: Date): string {
   return `${datePart} ${stamp}`;
 }
 
-function BottomNav() {
-  return (
-    <nav
-      aria-label="Huvudnavigering"
-      className="fixed inset-x-0 bottom-0 bg-surface border-t border-border"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-    >
-      <ul className="flex h-16 max-w-content mx-auto">
-        <li className="flex-1">
-          <a
-            href="/app"
-            aria-current="page"
-            className="h-full flex flex-col items-center justify-center gap-1 text-primary font-semibold"
-          >
-            <House size={28} strokeWidth={1.75} aria-hidden="true" />
-            <span className="text-caption">Hem</span>
-          </a>
-        </li>
-        <li className="flex-1">
-          <a
-            href="/app/schema"
-            className="h-full flex flex-col items-center justify-center gap-1 text-text-muted font-medium"
-          >
-            <Calendar size={28} strokeWidth={1.75} aria-hidden="true" />
-            <span className="text-caption">Kalender</span>
-          </a>
-        </li>
-        <li className="flex-1">
-          <a
-            href="/app/mig"
-            className="h-full flex flex-col items-center justify-center gap-1 text-text-muted font-medium"
-          >
-            <User size={28} strokeWidth={1.75} aria-hidden="true" />
-            <span className="text-caption">Min sida</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  );
-}
-
 export default async function AppPage() {
   const supabase = await createClient();
   const {
@@ -138,7 +98,7 @@ export default async function AppPage() {
             </Link>
           </div>
         </main>
-        <BottomNav />
+        <BottomNav active="home" />
       </div>
     );
   }
@@ -227,7 +187,7 @@ export default async function AppPage() {
           </Link>
         </div>
       </main>
-      <BottomNav />
+      <BottomNav active="home" />
     </div>
   );
 }
