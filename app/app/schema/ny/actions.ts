@@ -14,6 +14,12 @@ export async function createScheduleItem(
   _prev: State,
   formData: FormData,
 ): Promise<State> {
+  // TODO(remove once we identify which early-return is firing in prod):
+  console.log(
+    "schedule_item form entries:",
+    JSON.stringify(Object.fromEntries(formData.entries())),
+  );
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,12 +34,15 @@ export async function createScheduleItem(
   const notesRaw = String(formData.get("notes") ?? "").trim();
 
   if (title.length < 1 || title.length > 80) {
+    console.log("validation: title", { length: title.length });
     return { error: GENERIC_ERROR };
   }
   if (!startsAtRaw) {
+    console.log("validation: startsAt empty");
     return { error: GENERIC_ERROR };
   }
   if (notesRaw.length > 280) {
+    console.log("validation: notes length", { length: notesRaw.length });
     return { error: GENERIC_ERROR };
   }
 
@@ -44,10 +53,19 @@ export async function createScheduleItem(
     if (endsAtRaw) {
       endsAt = parseStockholmDateTime(endsAtRaw);
       if (endsAt.getTime() <= startsAt.getTime()) {
+        console.log("validation: ends before starts", {
+          startsAt: startsAt.toISOString(),
+          endsAt: endsAt.toISOString(),
+        });
         return { error: GENERIC_ERROR };
       }
     }
-  } catch {
+  } catch (e) {
+    console.log("validation: date parse", {
+      startsAtRaw,
+      endsAtRaw,
+      message: e instanceof Error ? e.message : String(e),
+    });
     return { error: GENERIC_ERROR };
   }
 
@@ -60,6 +78,7 @@ export async function createScheduleItem(
     .maybeSingle();
 
   if (!membership) {
+    console.log("validation: no membership", { user_id: user.id });
     return { error: GENERIC_ERROR };
   }
 
