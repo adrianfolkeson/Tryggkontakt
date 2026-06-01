@@ -303,6 +303,7 @@ shadcn/ui as the base. Each component below documents what we override.
 |---|---|---|
 | **Primary** | Single CTA per screen | `--primary` fill, `--primary-text`, `radius-lg` |
 | **Secondary** | Alternate path | `--surface` fill, 1 px `--border-strong`, `--text` |
+| **Outline** | Secondary actions that are mildly consequential but not destructive — sign out, dismiss, cancel. | Transparent fill, 1 px `--primary` border, `--primary` text, `text-body font-semibold`, `min-h-button px-6`, `rounded-lg` |
 | **Text** | Tertiary actions inside cards | No fill, no border, `--primary` text, underline on focus |
 | **Destructive** | Delete, leave | `--surface` fill, `--danger` border + text. Always two-step. |
 
@@ -663,7 +664,7 @@ See §11. Not displayed in-app in MVP; arrives by email Sunday evening. Reading 
 │  • Tillgänglighet                   │
 │  • Integritet                       │
 │                                     │
-│  Logga ut                           │  ← destructive text button
+│  Logga ut                           │  ← outline button, primary-coloured, full-width
 │                                     │
 ├─────────────────────────────────────┤
 │   Hem      Kalender    Min sida     │
