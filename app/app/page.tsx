@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { addDaysToDateStr, stockholmDateStr } from "@/lib/stockholm";
 
 import BottomNav from "./_components/bottom-nav";
 
@@ -62,6 +63,35 @@ function formatUpdateTime(d: Date, now: Date): string {
     timeZone: "Europe/Stockholm",
   }).format(d);
   return `${datePart} ${stamp}`;
+}
+
+function formatHomeReminderTime(d: Date, now: Date): string {
+  const time = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(d);
+
+  const todayStr = stockholmDateStr(now);
+  const dueStr = stockholmDateStr(d);
+  if (dueStr === todayStr) return `Idag ${time}`;
+
+  const weekEndStr = addDaysToDateStr(todayStr, 7);
+  if (dueStr < weekEndStr) {
+    const wd = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Europe/Stockholm",
+      weekday: "short",
+    }).format(d);
+    return `${wd.charAt(0).toUpperCase()}${wd.slice(1)} ${time}`;
+  }
+
+  const date = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    day: "numeric",
+    month: "short",
+  }).format(d);
+  return `${date} ${time}`;
 }
 
 export default async function AppPage() {
@@ -134,6 +164,16 @@ export default async function AppPage() {
     authorFirstName = authorProfile?.display_name?.split(" ")[0] ?? null;
   }
 
+  const { data: upcomingRemindersData } = await supabase
+    .from("reminder")
+    .select("id, title, due_at, is_urgent")
+    .eq("circle_id", membership.circle_id)
+    .gte("due_at", new Date().toISOString())
+    .order("due_at", { ascending: true })
+    .limit(3);
+
+  const upcomingReminders = upcomingRemindersData ?? [];
+
   return (
     <div className="min-h-dvh flex flex-col bg-bg">
       <main className="flex-1 px-4 pt-8 pb-32 max-w-content mx-auto w-full">
@@ -175,6 +215,47 @@ export default async function AppPage() {
             <p className="text-body text-text-muted">
               Inga uppdateringar än idag.
             </p>
+          </section>
+        )}
+
+        {upcomingReminders.length > 0 && (
+          <section
+            aria-labelledby="reminders-heading"
+            className="mt-8"
+          >
+            <div className="flex items-baseline justify-between">
+              <h2 id="reminders-heading" className="text-h2 text-text">
+                Påminnelser
+              </h2>
+              <Link
+                href="/app/paminnelser"
+                className="text-meta text-primary font-medium"
+              >
+                Se alla
+              </Link>
+            </div>
+            <ul className="mt-3 flex flex-col gap-2">
+              {upcomingReminders.map((r) => (
+                <li key={r.id}>
+                  <Link
+                    href="/app/paminnelser"
+                    className="flex items-baseline gap-3 rounded-md bg-surface shadow-soft p-4"
+                  >
+                    <span className="text-meta text-text-muted tabular-nums shrink-0">
+                      {formatHomeReminderTime(new Date(r.due_at), new Date())}
+                    </span>
+                    <span className="text-body text-text font-semibold flex-1">
+                      {r.title}
+                    </span>
+                    {r.is_urgent && (
+                      <span className="text-caption font-medium px-2 py-1 rounded-pill bg-warn-soft text-warn shrink-0">
+                        Akut
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

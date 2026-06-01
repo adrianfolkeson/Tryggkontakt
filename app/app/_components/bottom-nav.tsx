@@ -2,7 +2,7 @@ import { Calendar, House, User, type LucideIcon } from "lucide-react";
 
 type ActiveTab = "home" | "calendar" | "profile";
 
-export default function BottomNav({ active }: { active: ActiveTab }) {
+export default function BottomNav({ active }: { active?: ActiveTab }) {
   return (
     <nav
       aria-label="Huvudnavigering"

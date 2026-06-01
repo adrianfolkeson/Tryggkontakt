@@ -450,6 +450,7 @@ Pill-shaped, used in lists to indicate state. `text-caption`, weight 500, paddin
 
 - *Aktiv*: `--primary-soft` background, `--primary` text.
 - *Tidigare*: `--surface-sunken` background, `--text-muted` text.
+- *Akut*: `--warn-soft` background, `--warn` text. Classes: `bg-warn-soft text-warn text-caption font-medium px-2 py-1 rounded-pill`. Used on urgent reminders only.
 
 ### 8.10 Empty states
 
@@ -1000,6 +1001,7 @@ When a non-obvious design decision is made, append it here. Each entry: date, de
 - **2026-05 — No month-view calendar.** Considered: standard month grid. Rejected because families plan around weeks, and month grids are visually dense.
 - **2026-05 — Pill picker widths fluid on mobile.** Considered: fixed 150 px minimum per pill. Rejected because four pills plus gaps overflow a 360 px viewport. Pills now fill the row via grid; tap area still clears 48 × 48 on any phone.
 - **2026-06 — Week math walks via Stockholm date strings, not UTC ms.** Considered: subtract `dayOffset * 86_400_000` ms from a UTC midnight. Rejected because that lands the wrong wall-clock day during DST transition weeks (late March / late October), grouping activities under the wrong header twice a year. We compute today's Stockholm date string, decrement whole days as strings, then re-parse each boundary via `parseStockholmDateTime` so the per-day Stockholm UTC offset is correct.
+- **2026-06 — Past-due reminders hidden from `/app/paminnelser` and the home card.** Considered: keep visible until the user dismisses them. Rejected for MVP because there's no dismiss action and no notion of "done" on a reminder row yet; showing growing stale lists would erode trust. Follow-up: add an explicit *Klar* / dismissed state when we have UX for marking reminders done. Until then, past-due rows persist in the DB (so audits and the §13 access log stay intact) but the queries filter `due_at >= now()` everywhere reminders are listed.
 
 ---
 
