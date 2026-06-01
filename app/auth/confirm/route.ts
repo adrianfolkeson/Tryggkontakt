@@ -34,13 +34,6 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    // TODO(remove once cookie propagation is verified in prod):
-    // log helps the next failure tell us whether the issue is the
-    // exchange itself or downstream cookie delivery.
-    console.log(
-      "auth/confirm pkce exchange:",
-      error ? `error=${error.message}` : "ok",
-    );
     if (!error) {
       return successResponse;
     }
@@ -49,10 +42,6 @@ export async function GET(request: NextRequest) {
 
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-    console.log(
-      "auth/confirm otp verify:",
-      error ? `error=${error.message}` : "ok",
-    );
     if (!error) {
       return successResponse;
     }
