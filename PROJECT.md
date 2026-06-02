@@ -93,6 +93,10 @@ En kort anteckning per dag och person. Skapas av den som senast varit med person
 - Fri text, max 280 tecken
 - Valfri bild
 
+**Synlighet:**
+
+Standard: hela kretsen ser uppdateringen. Anhöriga kan välja *"Bara anhöriga"* per uppdatering — då är raden osynlig för personal och samordnare. Det är enda synlighetsnivån i MVP; finkornigare nivåer (bara personal, specifika medlemmar) är uttryckligen utanför scope.
+
 **Exempel:**
 > *"Åt bra till frukost, lite trött efter promenaden. Pratade mycket om tåget vi såg på lördagen."*
 > — Maria, assistent, 09:14

@@ -44,6 +44,12 @@ These are not aspirational. They override convenience.
 
 ---
 
+## Daily update visibility
+
+A `daily_update` can be marked `relatives_only` at create-time. The RLS SELECT predicate filters by the viewer's role — staff and samordnare cannot see `relatives_only` updates; only active relatives of the circle can. The UI shows a *"Bara anhöriga"* chip on restricted updates so relatives know the staff side doesn't have visibility on that row. The visibility picker is gated on the submitter being an active relative; non-relative submitters don't see it, and the server action rejects a forged `visibility=relatives` POST from a non-relative.
+
+---
+
 ## Accessibility is not optional
 
 Every UI change must pass:

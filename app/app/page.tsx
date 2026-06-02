@@ -148,7 +148,7 @@ export default async function AppPage() {
   const { data: latest } = await supabase
     .from("daily_update")
     .select(
-      "id, mood, sleep, energy, free_text, created_at, author_user_id",
+      "id, mood, sleep, energy, free_text, created_at, author_user_id, relatives_only",
     )
     .eq("circle_id", membership.circle_id)
     .order("created_at", { ascending: false })
@@ -189,9 +189,16 @@ export default async function AppPage() {
               <h2 id="latest-update-title" className="text-h2 text-text">
                 Senaste från {authorFirstName ?? "någon"}
               </h2>
-              <p className="text-meta text-text-muted mt-1">
-                {formatUpdateTime(new Date(latest.created_at), new Date())}
-              </p>
+              <div className="mt-1 flex items-baseline gap-3 flex-wrap">
+                <p className="text-meta text-text-muted">
+                  {formatUpdateTime(new Date(latest.created_at), new Date())}
+                </p>
+                {latest.relatives_only && (
+                  <span className="text-caption font-medium px-2 py-1 rounded-pill bg-primary-soft text-primary">
+                    Bara anhöriga
+                  </span>
+                )}
+              </div>
             </div>
             <p className="text-body text-text">
               <span aria-hidden="true">

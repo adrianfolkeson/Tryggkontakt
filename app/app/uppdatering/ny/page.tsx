@@ -15,7 +15,7 @@ export default async function NyUppdateringPage() {
 
   const { data: membership } = await supabase
     .from("circle_member")
-    .select("circle_id")
+    .select("circle_id, role")
     .eq("user_id", user.id)
     .is("valid_to", null)
     .limit(1)
@@ -25,5 +25,7 @@ export default async function NyUppdateringPage() {
     redirect("/app");
   }
 
-  return <NyUppdateringForm />;
+  const isRelative = membership.role === "relative";
+
+  return <NyUppdateringForm isRelative={isRelative} />;
 }

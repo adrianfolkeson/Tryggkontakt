@@ -452,6 +452,7 @@ Pill-shaped, used in lists to indicate state. `text-caption`, weight 500, paddin
 - *Aktiv*: `--primary-soft` background, `--primary` text.
 - *Tidigare*: `--surface-sunken` background, `--text-muted` text.
 - *Akut*: `--warn-soft` background, `--warn` text. Classes: `bg-warn-soft text-warn text-caption font-medium px-2 py-1 rounded-pill`. Used on urgent reminders only.
+- *Info-scope*: `--primary-soft` background, `--primary` text. Classes: `bg-primary-soft text-primary text-caption font-medium px-2 py-1 rounded-pill`. Use for non-urgent scope/visibility cues (e.g. *Bara anhöriga* on daily updates). Future scope chips (e.g. *Försenade* on reminders) reuse this variant.
 
 ### 8.10 Empty states
 

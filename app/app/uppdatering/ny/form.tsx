@@ -25,6 +25,11 @@ const ENERGY_OPTIONS = [
   { value: "low", label: "Låg" },
 ] as const;
 
+const VISIBILITY_OPTIONS = [
+  { value: "all", label: "Alla i kretsen" },
+  { value: "relatives", label: "Bara anhöriga" },
+] as const;
+
 const initialState: State = {};
 
 type Option = { value: string; label: string; emoji?: string };
@@ -42,7 +47,12 @@ function PillPicker({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const cols = options.length === 4 ? "grid-cols-4" : "grid-cols-3";
+  const cols =
+    options.length === 4
+      ? "grid-cols-4"
+      : options.length === 2
+        ? "grid-cols-2"
+        : "grid-cols-3";
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="text-caption text-text font-medium">{label}</legend>
@@ -89,11 +99,16 @@ function PillPicker({
   );
 }
 
-export default function NyUppdateringForm() {
+export default function NyUppdateringForm({
+  isRelative,
+}: {
+  isRelative: boolean;
+}) {
   const [mood, setMood] = useState("");
   const [sleep, setSleep] = useState("");
   const [energy, setEnergy] = useState("");
   const [freeText, setFreeText] = useState("");
+  const [visibility, setVisibility] = useState<"all" | "relatives">("all");
 
   const [state, formAction, pending] = useActionState(
     createDailyUpdate,
@@ -182,6 +197,16 @@ export default function NyUppdateringForm() {
             </p>
           )}
         </div>
+
+        {isRelative && (
+          <PillPicker
+            label="Vem ser uppdateringen?"
+            name="visibility"
+            options={VISIBILITY_OPTIONS}
+            value={visibility}
+            onChange={(v) => setVisibility(v as "all" | "relatives")}
+          />
+        )}
 
         {state.error && (
           <p role="alert" className="text-body text-warn">
