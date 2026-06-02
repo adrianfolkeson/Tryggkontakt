@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
@@ -68,6 +69,12 @@ export default async function MinSidaPage() {
           </h2>
           <p className="text-body text-text">{personName}</p>
           <p className="text-meta text-text-muted">{roleLabel}</p>
+          <Link
+            href="/app/krets"
+            className="text-body text-primary font-medium mt-1"
+          >
+            Hantera krets
+          </Link>
         </section>
 
         <form action={signOut} className="mt-12">

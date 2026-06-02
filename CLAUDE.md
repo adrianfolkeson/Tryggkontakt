@@ -76,6 +76,14 @@ All copy in Swedish. The tone is *lugn vän som varit närvarande* — a calm fr
 
 Never use *patient*, *brukare*, or *klient* about the person. Use their name, or *personen*.
 
+### Error copy — generic vs. specific
+
+**Generic copy for validation errors the user can fix by retyping the input.** Example: empty title, missing date, malformed email. One generic line per surface: *"Det gick inte att spara just nu. Försök igen om en stund."* The user re-reads their own input and corrects it; we don't need to name the field.
+
+**Specific copy for business-rule errors where the user needs different information to proceed.** Example: *"Personen är redan medlem i kretsen."* / *"En inbjudan till den här e-postadressen väntar redan."* / *"Du måste logga in med samma e-postadress som inbjudan skickades till."* These are states the user cannot infer from the form; the message names the constraint so they know what to do next.
+
+The split lives on the server action: validation branches return the generic; business-rule branches return the specific.
+
 ---
 
 ## When to push back
