@@ -42,6 +42,7 @@ export default async function MinSidaPage() {
 
   const personName = membership.circle?.person?.display_name ?? "(okänd)";
   const roleLabel = ROLE_LABEL[membership.role] ?? membership.role;
+  const isRelative = membership.role === "relative";
 
   return (
     <div className="min-h-dvh flex flex-col bg-bg">
@@ -75,6 +76,14 @@ export default async function MinSidaPage() {
           >
             Hantera krets
           </Link>
+          {isRelative && (
+            <Link
+              href="/app/export"
+              className="text-body text-primary font-medium min-h-tap flex items-center"
+            >
+              Exportera till PDF
+            </Link>
+          )}
         </section>
 
         <form action={signOut} className="mt-12">
