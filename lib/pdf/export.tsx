@@ -7,11 +7,13 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 
-const MOOD_LABEL: Record<string, { emoji: string; label: string }> = {
-  happy: { emoji: "😌", label: "glad" },
-  calm: { emoji: "🙂", label: "lugn" },
-  tired: { emoji: "😐", label: "trött" },
-  worried: { emoji: "😣", label: "orolig" },
+// Helvetica (React-PDF default) has no emoji glyphs, so emoji
+// would render as broken stubs in the PDF. Use Swedish labels only.
+const MOOD_LABEL: Record<string, string> = {
+  happy: "glad",
+  calm: "lugn",
+  tired: "trött",
+  worried: "orolig",
 };
 const SLEEP_LABEL: Record<string, string> = {
   good: "bra",
@@ -47,10 +49,24 @@ type Reminder = {
   is_urgent: boolean;
 };
 
+type Member = {
+  user_id: string;
+  role: string;
+  name: string;
+  phone: string | null;
+};
+
+const ROLE_PDF_LABEL: Record<string, string> = {
+  relative: "Anhörig",
+  staff: "Personal",
+  coordinator: "Samordnare",
+};
+
 export type RenderExportParams = {
   personName: string;
   fromStr: string;
   toStr: string;
+  members: Member[];
   updates: DailyUpdate[];
   scheduleItems: ScheduleItem[];
   reminders: Reminder[];
@@ -135,6 +151,20 @@ export async function renderExportPdf(p: RenderExportParams): Promise<Buffer> {
           </Text>
         </View>
 
+        <Text style={styles.sectionHeading}>Kontakter</Text>
+        {p.members.length === 0 ? (
+          <Text style={styles.emptyData}>(ingen data)</Text>
+        ) : (
+          p.members.map((m) => (
+            <View key={m.user_id} style={styles.entry} wrap={false}>
+              <Text style={styles.entryDetail}>
+                {m.name} · {ROLE_PDF_LABEL[m.role] ?? m.role}
+                {m.phone ? ` · ${m.phone}` : ""}
+              </Text>
+            </View>
+          ))
+        )}
+
         <Text style={styles.title}>Sammanfattning</Text>
         <Text style={styles.subtitle}>
           {fromLabel} – {toLabel}
@@ -148,22 +178,19 @@ export async function renderExportPdf(p: RenderExportParams): Promise<Buffer> {
         {p.updates.length === 0 ? (
           <Text style={styles.emptyData}>(ingen data)</Text>
         ) : (
-          p.updates.map((u) => {
-            const mood = MOOD_LABEL[u.mood];
-            return (
-              <View key={u.id} style={styles.entry} wrap={false}>
-                <Text style={styles.entryMeta}>
-                  {formatDateTime(u.created_at)} · {u.authorName}
-                </Text>
-                <Text style={styles.entryDetail}>
-                  {mood?.emoji ?? ""} {mood?.label ?? u.mood} · Sömn{" "}
-                  {SLEEP_LABEL[u.sleep] ?? u.sleep} · Energi{" "}
-                  {ENERGY_LABEL[u.energy] ?? u.energy}
-                </Text>
-                <Text style={styles.body}>{u.free_text}</Text>
-              </View>
-            );
-          })
+          p.updates.map((u) => (
+            <View key={u.id} style={styles.entry} wrap={false}>
+              <Text style={styles.entryMeta}>
+                {formatDateTime(u.created_at)} · {u.authorName}
+              </Text>
+              <Text style={styles.entryDetail}>
+                {MOOD_LABEL[u.mood] ?? u.mood} · Sömn{" "}
+                {SLEEP_LABEL[u.sleep] ?? u.sleep} · Energi{" "}
+                {ENERGY_LABEL[u.energy] ?? u.energy}
+              </Text>
+              <Text style={styles.body}>{u.free_text}</Text>
+            </View>
+          ))
         )}
 
         <Text style={styles.sectionHeading} break>

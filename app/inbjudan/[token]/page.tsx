@@ -98,7 +98,7 @@ export default async function InvitePage({
         p_user_id: user.id,
       });
       if (!error) {
-        redirect("/onboarding/namn");
+        redirect("/onboarding");
       }
       acceptError =
         ACCEPT_ERROR_COPY[error.message] ??

@@ -15,7 +15,10 @@ const ROLE_LABEL: Record<string, string> = {
 type MemberRow = {
   user_id: string;
   role: string;
-  profile_public: { display_name: string } | null;
+  profile_public: {
+    display_name: string;
+    phone_number: string | null;
+  } | null;
   profile_contact: { email: string | null } | null;
 };
 
@@ -62,16 +65,50 @@ export default async function KretsPage({
     (circleRow as { person?: { display_name?: string } } | null)?.person
       ?.display_name ?? "";
 
-  const { data: membersData } = await supabase
+  // No FK between circle_member and profile_public / profile_contact
+  // (both reference auth.users), so PostgREST embeds don't resolve.
+  // Two-step lookup: members, then matching profile rows by user_id.
+  const { data: memberRowsData } = await supabase
     .from("circle_member")
-    .select(
-      "user_id, role, valid_from, profile_public:user_id(display_name), profile_contact:user_id(email)",
-    )
+    .select("user_id, role, valid_from")
     .eq("circle_id", ownMembership.circle_id)
     .is("valid_to", null)
     .order("valid_from", { ascending: true });
 
-  const members = (membersData ?? []) as unknown as MemberRow[];
+  const memberRows = memberRowsData ?? [];
+  const memberUserIds = memberRows.map((m) => m.user_id);
+
+  const profilesById = new Map<
+    string,
+    { display_name: string; phone_number: string | null }
+  >();
+  const contactsById = new Map<string, { email: string | null }>();
+  if (memberUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profile_public")
+      .select("user_id, display_name, phone_number")
+      .in("user_id", memberUserIds);
+    for (const p of profiles ?? []) {
+      profilesById.set(p.user_id, {
+        display_name: p.display_name,
+        phone_number: p.phone_number,
+      });
+    }
+    const { data: contacts } = await supabase
+      .from("profile_contact")
+      .select("user_id, email")
+      .in("user_id", memberUserIds);
+    for (const c of contacts ?? []) {
+      contactsById.set(c.user_id, { email: c.email });
+    }
+  }
+
+  const members: MemberRow[] = memberRows.map((m) => ({
+    user_id: m.user_id,
+    role: m.role,
+    profile_public: profilesById.get(m.user_id) ?? null,
+    profile_contact: contactsById.get(m.user_id) ?? null,
+  }));
 
   let invites: InviteRow[] = [];
   if (isRelative) {
@@ -134,6 +171,16 @@ export default async function KretsPage({
                   <p className="text-meta text-text-muted">
                     {ROLE_LABEL[m.role] ?? m.role}
                   </p>
+                  {m.profile_public?.phone_number && (
+                    <p className="text-meta text-text-muted">
+                      <a
+                        href={`tel:${m.profile_public.phone_number}`}
+                        className="text-primary"
+                      >
+                        {m.profile_public.phone_number}
+                      </a>
+                    </p>
+                  )}
                 </li>
               );
             })}

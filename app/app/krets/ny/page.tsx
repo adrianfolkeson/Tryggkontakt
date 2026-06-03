@@ -11,6 +11,7 @@ export default function NewCirclePage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [personFirstName, setPersonFirstName] = useState("");
   const [personDob, setPersonDob] = useState("");
 
@@ -65,6 +66,23 @@ export default function NewCirclePage() {
               />
             </div>
 
+            <div className="flex flex-col gap-2">
+              <label htmlFor="phoneNumber" className="text-caption text-text">
+                Telefonnummer (valfritt)
+              </label>
+              <input
+                id="phoneNumber"
+                name="phoneNumber"
+                type="tel"
+                maxLength={32}
+                autoComplete="tel"
+                placeholder="För nödfall — synligt för andra i kretsen"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="min-h-button px-4 rounded-sm bg-surface-sunken border border-border text-body text-text focus:border-focus focus:border-2 focus:outline-none"
+              />
+            </div>
+
             <button
               type="submit"
               className="mt-6 min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
@@ -76,6 +94,7 @@ export default function NewCirclePage() {
           <form action={formAction} className="flex flex-col gap-6">
             <input type="hidden" name="firstName" value={firstName} />
             <input type="hidden" name="lastName" value={lastName} />
+            <input type="hidden" name="phoneNumber" value={phoneNumber} />
 
             <p className="text-caption text-text-muted">Steg 2 av 2</p>
             <h1 className="text-h1 text-text">Vem är kretsen för?</h1>

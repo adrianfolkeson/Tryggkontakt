@@ -10,6 +10,7 @@ const initialState: State = {};
 export default function NameForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const [state, formAction, pending] = useActionState(saveName, initialState);
 
@@ -60,6 +61,26 @@ export default function NameForm() {
               autoComplete="family-name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              className="min-h-button px-4 rounded-sm bg-surface-sunken border border-border text-body text-text focus:border-focus focus:border-2 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="phoneNumber"
+              className="text-caption text-text font-medium"
+            >
+              Telefonnummer (valfritt)
+            </label>
+            <input
+              id="phoneNumber"
+              name="phoneNumber"
+              type="tel"
+              maxLength={32}
+              autoComplete="tel"
+              placeholder="För nödfall — synligt för andra i kretsen"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               className="min-h-button px-4 rounded-sm bg-surface-sunken border border-border text-body text-text focus:border-focus focus:border-2 focus:outline-none"
             />
           </div>

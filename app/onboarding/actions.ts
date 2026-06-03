@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type State = { error?: string };
 
-const GENERIC_ERROR = "Det gick inte att spara namnet. Försök igen.";
+const GENERIC_ERROR = "Det gick inte att spara just nu. Försök igen.";
 
 export async function saveName(
   _prev: State,
@@ -22,16 +22,18 @@ export async function saveName(
 
   const firstName = String(formData.get("firstName") ?? "").trim();
   const lastName = String(formData.get("lastName") ?? "").trim();
+  const phoneNumber = String(formData.get("phoneNumber") ?? "").trim();
 
   if (!firstName || !lastName) {
     return { error: GENERIC_ERROR };
   }
 
-  const displayName = `${firstName} ${lastName}`;
-
   const { error } = await supabase
     .from("profile_public")
-    .update({ display_name: displayName })
+    .update({
+      display_name: `${firstName} ${lastName}`,
+      phone_number: phoneNumber || null,
+    })
     .eq("user_id", user.id);
 
   if (error) {

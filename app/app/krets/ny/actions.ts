@@ -24,6 +24,7 @@ export async function createFirstCircle(
   const lastName = String(formData.get("lastName") ?? "").trim();
   const personFirstName = String(formData.get("personFirstName") ?? "").trim();
   const personDob = String(formData.get("personDateOfBirth") ?? "").trim();
+  const phoneNumber = String(formData.get("phoneNumber") ?? "").trim();
 
   if (!firstName || !lastName || !personFirstName) {
     return { error: "Alla obligatoriska fält måste fyllas i." };
@@ -36,6 +37,7 @@ export async function createFirstCircle(
     p_last_name: lastName,
     p_person_first_name: personFirstName,
     p_person_date_of_birth: personDob || null,
+    p_phone_number: phoneNumber || null,
   });
 
   if (error) {

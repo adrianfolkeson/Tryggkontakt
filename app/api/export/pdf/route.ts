@@ -128,11 +128,49 @@ export async function POST(request: Request) {
     .lt("due_at", endUtc)
     .order("due_at", { ascending: true });
 
+  // Two-step member lookup: no FK between circle_member and
+  // profile_public means PostgREST won't embed; query separately.
+  const { data: memberRows } = await supabase
+    .from("circle_member")
+    .select("user_id, role, valid_from")
+    .eq("circle_id", membership.circle_id)
+    .is("valid_to", null)
+    .order("valid_from", { ascending: true });
+
+  const memberUserIds = (memberRows ?? []).map((m) => m.user_id);
+  const memberProfilesById = new Map<
+    string,
+    { display_name: string | null; phone_number: string | null }
+  >();
+  if (memberUserIds.length > 0) {
+    const { data: memberProfiles } = await supabase
+      .from("profile_public")
+      .select("user_id, display_name, phone_number")
+      .in("user_id", memberUserIds);
+    for (const p of memberProfiles ?? []) {
+      memberProfilesById.set(p.user_id, {
+        display_name: p.display_name,
+        phone_number: p.phone_number,
+      });
+    }
+  }
+
+  const members = (memberRows ?? []).map((m) => {
+    const profile = memberProfilesById.get(m.user_id);
+    return {
+      user_id: m.user_id,
+      role: m.role,
+      name: profile?.display_name?.trim() || "(okänd)",
+      phone: profile?.phone_number ?? null,
+    };
+  });
+
   const { renderExportPdf } = await import("@/lib/pdf/export");
   const buffer = await renderExportPdf({
     personName,
     fromStr,
     toStr,
+    members,
     updates,
     scheduleItems: scheduleItems ?? [],
     reminders: reminders ?? [],

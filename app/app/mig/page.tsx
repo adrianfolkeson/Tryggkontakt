@@ -59,6 +59,12 @@ export default async function MinSidaPage() {
             Konto
           </h2>
           <p className="text-body text-text break-all">{user.email}</p>
+          <Link
+            href="/app/mig/redigera"
+            className="text-body text-primary font-medium mt-1"
+          >
+            Redigera mina uppgifter
+          </Link>
         </section>
 
         <section
