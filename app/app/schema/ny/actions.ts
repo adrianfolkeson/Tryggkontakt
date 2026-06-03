@@ -77,5 +77,5 @@ export async function createScheduleItem(
     return { error: GENERIC_ERROR };
   }
 
-  redirect("/app/schema");
+  redirect("/app/schema?sparat=1");
 }

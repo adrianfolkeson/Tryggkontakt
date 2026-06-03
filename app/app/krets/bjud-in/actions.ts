@@ -156,5 +156,5 @@ export async function createInvite(
     console.error("invite email send failed:", e);
   }
 
-  redirect(`/app/krets?invited=${token}`);
+  redirect(`/app/krets?invited=${token}&sparat=1`);
 }

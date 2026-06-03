@@ -8,6 +8,7 @@ import {
   stockholmDateStr,
 } from "@/lib/stockholm";
 
+import Toast from "../../_components/toast";
 import BottomNav from "../_components/bottom-nav";
 
 type Reminder = {
@@ -42,7 +43,14 @@ function formatLaterDate(d: Date): string {
   }).format(d);
 }
 
-export default async function PaminnelserPage() {
+export default async function PaminnelserPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sparat?: string }>;
+}) {
+  const sp = await searchParams;
+  const showToast = sp.sparat === "1";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -149,6 +157,7 @@ export default async function PaminnelserPage() {
         )}
       </main>
 
+      {showToast && <Toast message="Påminnelse sparad" />}
       <BottomNav />
     </div>
   );

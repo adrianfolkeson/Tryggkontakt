@@ -42,5 +42,5 @@ export async function updateProfile(
     return { error: GENERIC_ERROR };
   }
 
-  redirect("/app/mig");
+  redirect("/app/mig?sparat=1");
 }

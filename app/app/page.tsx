@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addDaysToDateStr, stockholmDateStr } from "@/lib/stockholm";
 
+import Toast from "../_components/toast";
 import BottomNav from "./_components/bottom-nav";
 
 const MOOD_INLINE: Record<string, { emoji: string; label: string }> = {
@@ -95,7 +96,14 @@ function formatHomeReminderTime(d: Date, now: Date): string {
   return `${date} ${time}`;
 }
 
-export default async function AppPage() {
+export default async function AppPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sparat?: string }>;
+}) {
+  const sp = await searchParams;
+  const showToast = sp.sparat === "1";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -291,6 +299,7 @@ export default async function AppPage() {
           </Link>
         </div>
       </main>
+      {showToast && <Toast message="Uppdatering sparad" />}
       <BottomNav active="home" />
     </div>
   );

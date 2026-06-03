@@ -479,6 +479,16 @@ Pattern: short, warm, factual. Never apologetic. Never "let's get started!" ener
 - One toast at a time. Never stack.
 - Dismissible by tap.
 
+### 8.13 Toast (confirmation)
+
+Distinct from §8.12. This is the *"Sparat-style"* affordance that fires after a successful write action.
+
+- Classes: `bg-primary-soft text-primary text-body font-medium rounded-pill px-4 py-2`, with a 20 px Lucide `Check` icon.
+- Position: fixed at the bottom of the viewport above `BottomNav` (`calc(5rem + env(safe-area-inset-bottom))`), horizontally centered.
+- Motion: the `animate-toast-in` keyframe drives a 3-second show-and-fade (0 → full opacity in ~8 %, hold until ~92 %, fade out).
+- One at a time; not dismissible (auto-fades).
+- Use for confirming successful write actions. Toast text in Swedish, short, lower case after the verb: *"Uppdatering sparad"*, *"Aktivitet sparad"*, *"Påminnelse sparad"*, *"Inbjudan skapad"*, *"Sparat"*.
+
 ---
 
 ## 9. Screen patterns

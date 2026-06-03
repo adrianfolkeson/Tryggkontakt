@@ -10,6 +10,7 @@ import {
   stockholmWeekdayShort,
 } from "@/lib/stockholm";
 
+import Toast from "../../_components/toast";
 import BottomNav from "../_components/bottom-nav";
 
 type ScheduleItem = {
@@ -49,7 +50,14 @@ function formatTime(d: Date): string {
   }).format(d);
 }
 
-export default async function SchemaPage() {
+export default async function SchemaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sparat?: string }>;
+}) {
+  const sp = await searchParams;
+  const showToast = sp.sparat === "1";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -151,6 +159,7 @@ export default async function SchemaPage() {
         )}
       </main>
 
+      {showToast && <Toast message="Aktivitet sparad" />}
       <BottomNav active="calendar" />
     </div>
   );

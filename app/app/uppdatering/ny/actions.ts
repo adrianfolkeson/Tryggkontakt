@@ -79,5 +79,5 @@ export async function createDailyUpdate(
     return { error: GENERIC_ERROR };
   }
 
-  redirect("/app");
+  redirect("/app?sparat=1");
 }

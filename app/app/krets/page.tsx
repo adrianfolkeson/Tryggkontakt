@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
+import Toast from "../../_components/toast";
 import BottomNav from "../_components/bottom-nav";
 import CopyLinkBanner from "./_components/copy-link-banner";
 
@@ -32,7 +33,7 @@ type InviteRow = {
 export default async function KretsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ invited?: string }>;
+  searchParams: Promise<{ invited?: string; sparat?: string }>;
 }) {
   const supabase = await createClient();
   const {
@@ -123,6 +124,7 @@ export default async function KretsPage({
 
   const sp = await searchParams;
   const justInvitedToken = sp.invited;
+  const showToast = sp.sparat === "1";
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://tryggkontakt.vercel.app";
   const justInvitedUrl =
@@ -240,6 +242,7 @@ export default async function KretsPage({
         )}
       </main>
 
+      {showToast && <Toast message="Inbjudan skapad" />}
       <BottomNav active="profile" />
     </div>
   );

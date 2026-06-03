@@ -65,5 +65,5 @@ export async function createReminder(
     return { error: GENERIC_ERROR };
   }
 
-  redirect("/app/paminnelser");
+  redirect("/app/paminnelser?sparat=1");
 }

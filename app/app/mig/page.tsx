@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
+import Toast from "../../_components/toast";
 import BottomNav from "../_components/bottom-nav";
 import { signOut } from "./actions";
 
@@ -17,7 +18,14 @@ type MembershipResult = {
   circle: { person: { display_name: string } | null } | null;
 };
 
-export default async function MinSidaPage() {
+export default async function MinSidaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sparat?: string }>;
+}) {
+  const sp = await searchParams;
+  const showToast = sp.sparat === "1";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -102,6 +110,7 @@ export default async function MinSidaPage() {
         </form>
       </main>
 
+      {showToast && <Toast message="Sparat" />}
       <BottomNav active="profile" />
     </div>
   );

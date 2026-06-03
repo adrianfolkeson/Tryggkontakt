@@ -58,6 +58,17 @@ export default {
         standard: "cubic-bezier(0.2, 0, 0, 1)",
         exit: "cubic-bezier(0.4, 0, 1, 1)",
       },
+      keyframes: {
+        "toast-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "8%": { opacity: "1", transform: "translateY(0)" },
+          "92%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "toast-in": "toast-in 3s cubic-bezier(0.2, 0, 0, 1) forwards",
+      },
       minHeight: {
         tap: "48px",
         button: "52px",
