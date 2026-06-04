@@ -4,7 +4,33 @@ import { createClient } from "@/lib/supabase/server";
 
 import NyUppdateringForm from "./form";
 
-export default async function NyUppdateringPage() {
+const VALID_SLOTS = ["morgon", "lunch", "eftermiddag"] as const;
+type Slot = (typeof VALID_SLOTS)[number];
+
+type ExistingRow = {
+  id: string;
+  slot: string;
+  mood: string | null;
+  sleep: string | null;
+  energy: string | null;
+  meal_eaten: string | null;
+  period_summary: string | null;
+  free_text: string;
+  relatives_only: boolean;
+  author_user_id: string;
+};
+
+export default async function NyUppdateringPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ slot?: string; id?: string }>;
+}) {
+  const sp = await searchParams;
+  const slot = sp.slot;
+  if (!slot || !(VALID_SLOTS as readonly string[]).includes(slot)) {
+    redirect("/app");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -27,5 +53,26 @@ export default async function NyUppdateringPage() {
 
   const isRelative = membership.role === "relative";
 
-  return <NyUppdateringForm isRelative={isRelative} />;
+  let existing: ExistingRow | null = null;
+  if (sp.id) {
+    const { data } = await supabase
+      .from("daily_update")
+      .select(
+        "id, slot, mood, sleep, energy, meal_eaten, period_summary, free_text, relatives_only, author_user_id",
+      )
+      .eq("id", sp.id)
+      .eq("circle_id", membership.circle_id)
+      .maybeSingle();
+    if (data && data.slot === slot) {
+      existing = data as ExistingRow;
+    }
+  }
+
+  return (
+    <NyUppdateringForm
+      slot={slot as Slot}
+      isRelative={isRelative}
+      existing={existing}
+    />
+  );
 }

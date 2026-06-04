@@ -8,11 +8,39 @@ import { addDaysToDateStr, stockholmDateStr } from "@/lib/stockholm";
 import Toast from "../_components/toast";
 import BottomNav from "./_components/bottom-nav";
 
-const MOOD_INLINE: Record<string, { emoji: string; label: string }> = {
-  happy: { emoji: "😌", label: "glad" },
-  calm: { emoji: "🙂", label: "lugn" },
-  tired: { emoji: "😐", label: "trött" },
-  worried: { emoji: "😣", label: "orolig" },
+type Slot = "morgon" | "lunch" | "eftermiddag";
+
+const SLOT_DEFS: Array<{
+  key: Slot;
+  openMin: number;
+  label: string;
+  addLabel: string;
+}> = [
+  {
+    key: "morgon",
+    openMin: 7 * 60 + 30,
+    label: "Morgon",
+    addLabel: "Lägg till morgonuppdatering",
+  },
+  {
+    key: "lunch",
+    openMin: 11 * 60 + 30,
+    label: "Lunch",
+    addLabel: "Lägg till lunchuppdatering",
+  },
+  {
+    key: "eftermiddag",
+    openMin: 15 * 60,
+    label: "Eftermiddag",
+    addLabel: "Lägg till eftermiddagsuppdatering",
+  },
+];
+
+const MOOD_INLINE: Record<string, string> = {
+  happy: "Glad",
+  calm: "Lugn",
+  tired: "Trött",
+  worried: "Orolig",
 };
 const SLEEP_INLINE: Record<string, string> = {
   good: "bra",
@@ -24,6 +52,35 @@ const ENERGY_INLINE: Record<string, string> = {
   medium: "medel",
   low: "låg",
 };
+const MEAL_INLINE: Record<string, string> = {
+  ja: "ja",
+  nej: "nej",
+  lite: "lite",
+};
+const PERIOD_INLINE: Record<string, string> = {
+  bra: "bra",
+  okej: "okej",
+  tuff: "tuff",
+};
+
+const MEAL_PREFIX_BY_SLOT: Record<string, string> = {
+  morgon: "Frukost",
+  lunch: "Lunch",
+  eftermiddag: "Mellanmål",
+};
+
+type Row = {
+  id: string;
+  slot: string;
+  mood: string | null;
+  sleep: string | null;
+  energy: string | null;
+  meal_eaten: string | null;
+  period_summary: string | null;
+  free_text: string;
+  created_at: string;
+  relatives_only: boolean;
+};
 
 function greetingFor(date: Date): string {
   const h = date.getHours();
@@ -32,53 +89,20 @@ function greetingFor(date: Date): string {
   return "God kväll";
 }
 
-function formatUpdateTime(d: Date, now: Date): string {
-  const stamp = new Intl.DateTimeFormat("sv-SE", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Stockholm",
-    hour12: false,
-  }).format(d);
-
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-  const dayMs = 24 * 60 * 60 * 1000;
-  const startOfYesterday = startOfToday.getTime() - dayMs;
-  const startOfWeek = startOfToday.getTime() - 6 * dayMs;
-
-  const dStart = new Date(d);
-  dStart.setHours(0, 0, 0, 0);
-  const dMs = dStart.getTime();
-
-  if (dMs === startOfToday.getTime()) return `idag ${stamp}`;
-  if (dMs === startOfYesterday) return `igår ${stamp}`;
-  if (dMs >= startOfWeek) {
-    const weekday = new Intl.DateTimeFormat("sv-SE", {
-      weekday: "long",
-      timeZone: "Europe/Stockholm",
-    }).format(d);
-    return `${weekday} ${stamp}`;
-  }
-  const datePart = new Intl.DateTimeFormat("sv-SE", {
-    day: "numeric",
-    month: "long",
-    timeZone: "Europe/Stockholm",
-  }).format(d);
-  return `${datePart} ${stamp}`;
-}
-
-function formatHomeReminderTime(d: Date, now: Date): string {
-  const time = new Intl.DateTimeFormat("sv-SE", {
+function formatTime(d: Date): string {
+  return new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Stockholm",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
   }).format(d);
+}
 
+function formatHomeReminderTime(d: Date, now: Date): string {
+  const time = formatTime(d);
   const todayStr = stockholmDateStr(now);
   const dueStr = stockholmDateStr(d);
   if (dueStr === todayStr) return `Idag ${time}`;
-
   const weekEndStr = addDaysToDateStr(todayStr, 7);
   if (dueStr < weekEndStr) {
     const wd = new Intl.DateTimeFormat("sv-SE", {
@@ -87,13 +111,29 @@ function formatHomeReminderTime(d: Date, now: Date): string {
     }).format(d);
     return `${wd.charAt(0).toUpperCase()}${wd.slice(1)} ${time}`;
   }
-
   const date = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Stockholm",
     day: "numeric",
     month: "short",
   }).format(d);
   return `${date} ${time}`;
+}
+
+function inlineSummary(r: Row): string {
+  const parts: string[] = [];
+  if (r.mood) parts.push(MOOD_INLINE[r.mood] ?? r.mood);
+  if (r.slot === "morgon" && r.sleep) {
+    parts.push(`Sov ${SLEEP_INLINE[r.sleep] ?? r.sleep}`);
+  }
+  if ((r.slot === "lunch" || r.slot === "eftermiddag") && r.period_summary) {
+    parts.push(`Period ${PERIOD_INLINE[r.period_summary] ?? r.period_summary}`);
+  }
+  if (r.meal_eaten) {
+    const prefix = MEAL_PREFIX_BY_SLOT[r.slot] ?? "Måltid";
+    parts.push(`${prefix} ${MEAL_INLINE[r.meal_eaten] ?? r.meal_eaten}`);
+  }
+  if (r.energy) parts.push(`Energi ${ENERGY_INLINE[r.energy] ?? r.energy}`);
+  return parts.join(" · ");
 }
 
 export default async function AppPage({
@@ -153,25 +193,73 @@ export default async function AppPage({
     ? `${greetingFor(new Date())}, ${firstName}`
     : greetingFor(new Date());
 
-  const { data: latest } = await supabase
+  const now = new Date();
+  const todayStr = stockholmDateStr(now);
+  const startUtc = new Date(`${todayStr}T00:00:00`).toISOString();
+  const endUtc = new Date(
+    `${addDaysToDateStr(todayStr, 1)}T00:00:00`,
+  ).toISOString();
+
+  const { data: todayRowsData } = await supabase
     .from("daily_update")
     .select(
-      "id, mood, sleep, energy, free_text, created_at, author_user_id, relatives_only",
+      "id, slot, mood, sleep, energy, meal_eaten, period_summary, free_text, created_at, relatives_only",
     )
     .eq("circle_id", membership.circle_id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .gte("created_at", startUtc)
+    .lt("created_at", endUtc)
+    .order("created_at", { ascending: true });
 
-  let authorFirstName: string | null = null;
-  if (latest) {
-    const { data: authorProfile } = await supabase
-      .from("profile_public")
-      .select("display_name")
-      .eq("user_id", latest.author_user_id)
-      .maybeSingle();
-    authorFirstName = authorProfile?.display_name?.split(" ")[0] ?? null;
+  const todayRows = (todayRowsData ?? []) as Row[];
+
+  const slotRows = new Map<Slot, Row>();
+  const snabbnoteringar: Row[] = [];
+  for (const r of todayRows) {
+    if (r.slot === "snabbnotering") snabbnoteringar.push(r);
+    else if (
+      r.slot === "morgon" ||
+      r.slot === "lunch" ||
+      r.slot === "eftermiddag"
+    ) {
+      slotRows.set(r.slot, r);
+    }
   }
+
+  const fmtHM = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+  const [hStr, mStr] = fmtHM.format(now).split(":");
+  const minOfDay = Number(hStr) * 60 + Number(mStr);
+
+  const opened = SLOT_DEFS.filter((s) => minOfDay >= s.openMin);
+  const latestOpenedIdx = opened.length - 1;
+  let latestFilledIdx = -1;
+  for (let i = opened.length - 1; i >= 0; i--) {
+    if (slotRows.has(opened[i].key)) {
+      latestFilledIdx = i;
+      break;
+    }
+  }
+
+  type CardState =
+    | { kind: "ifylld"; def: (typeof SLOT_DEFS)[number]; row: Row }
+    | { kind: "vantar"; def: (typeof SLOT_DEFS)[number] }
+    | { kind: "ej-ifylld"; def: (typeof SLOT_DEFS)[number] }
+    | { kind: "hidden" };
+
+  const slotCards: CardState[] = opened.map((def, i) => {
+    const row = slotRows.get(def.key);
+    if (row) return { kind: "ifylld", def, row };
+    if (latestFilledIdx === -1) {
+      if (i === latestOpenedIdx) return { kind: "vantar", def };
+      return { kind: "ej-ifylld", def };
+    }
+    if (i > latestFilledIdx) return { kind: "vantar", def };
+    return { kind: "hidden" };
+  });
 
   const { data: upcomingRemindersData } = await supabase
     .from("reminder")
@@ -188,83 +276,147 @@ export default async function AppPage({
       <main className="flex-1 px-4 pt-8 pb-32 max-w-content mx-auto w-full">
         <h1 className="text-display text-text">{greeting}</h1>
 
-        {latest ? (
-          <section
-            aria-labelledby="latest-update-title"
-            className="mt-8 rounded-md bg-surface shadow-soft p-4 flex flex-col gap-3"
-          >
-            <div>
-              <h2 id="latest-update-title" className="text-h2 text-text">
-                Senaste från {authorFirstName ?? "någon"}
-              </h2>
-              <div className="mt-1 flex items-baseline gap-3 flex-wrap">
-                <p className="text-meta text-text-muted">
-                  {formatUpdateTime(new Date(latest.created_at), new Date())}
-                </p>
-                {latest.relatives_only && (
-                  <span className="text-caption font-medium px-2 py-1 rounded-pill bg-primary-soft text-primary">
-                    Bara anhöriga
-                  </span>
-                )}
-              </div>
-            </div>
-            <p className="text-body text-text">
-              <span aria-hidden="true">
-                {MOOD_INLINE[latest.mood]?.emoji}
-              </span>{" "}
-              {MOOD_INLINE[latest.mood]?.label}{" "}
-              <span aria-hidden="true">·</span> Sömn{" "}
-              {SLEEP_INLINE[latest.sleep]}{" "}
-              <span aria-hidden="true">·</span> Energi{" "}
-              {ENERGY_INLINE[latest.energy]}
-            </p>
-            <p className="text-body-lg text-text">{latest.free_text}</p>
-          </section>
-        ) : (
-          <section
-            aria-labelledby="updates-heading"
-            className="mt-8 rounded-md bg-surface shadow-soft p-4"
-          >
-            <h2 id="updates-heading" className="sr-only">
-              Senaste uppdatering
-            </h2>
+        <section
+          aria-labelledby="slots-heading"
+          className="mt-8 flex flex-col gap-3"
+        >
+          <h2 id="slots-heading" className="sr-only">
+            Dagens uppdateringar
+          </h2>
+          {opened.length === 0 && snabbnoteringar.length === 0 ? (
             <p className="text-body text-text-muted">
               Inga uppdateringar än idag.
             </p>
-          </section>
-        )}
+          ) : null}
+          {slotCards.map((c) => {
+            if (c.kind === "hidden") return null;
+            if (c.kind === "ifylld") {
+              return (
+                <article
+                  key={c.def.key}
+                  className="rounded-md bg-surface shadow-soft p-4 flex flex-col gap-2"
+                >
+                  <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                    <h3 className="text-h2 text-text">{c.def.label}</h3>
+                    <p className="text-meta text-text-muted">
+                      {formatTime(new Date(c.row.created_at))}
+                    </p>
+                  </div>
+                  {c.row.relatives_only && (
+                    <span className="text-caption font-medium px-2 py-1 rounded-pill bg-primary-soft text-primary self-start">
+                      Bara anhöriga
+                    </span>
+                  )}
+                  <p className="text-body text-text">{inlineSummary(c.row)}</p>
+                  <p className="text-body-lg text-text">{c.row.free_text}</p>
+                  <Link
+                    href={`/app/uppdatering/ny?slot=${c.def.key}&id=${c.row.id}`}
+                    className="text-meta text-primary font-medium self-end transition-colors duration-quick ease-standard hover:text-primary-hover"
+                  >
+                    Ändra
+                  </Link>
+                </article>
+              );
+            }
+            if (c.kind === "vantar") {
+              return (
+                <article
+                  key={c.def.key}
+                  className="rounded-md bg-surface border border-border p-4 flex flex-col gap-3"
+                >
+                  <h3 className="text-h2 text-text">{c.def.label}</h3>
+                  <Link
+                    href={`/app/uppdatering/ny?slot=${c.def.key}`}
+                    className="w-full flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
+                  >
+                    {c.def.addLabel}
+                  </Link>
+                </article>
+              );
+            }
+            return (
+              <article
+                key={c.def.key}
+                className="rounded-md bg-surface-sunken p-4 flex flex-col gap-2 opacity-75"
+              >
+                <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <h3 className="text-h2 text-text">{c.def.label}</h3>
+                  <span className="text-caption font-medium px-2 py-1 rounded-pill bg-warn-soft text-warn">
+                    Ej ifylld
+                  </span>
+                </div>
+                <Link
+                  href={`/app/uppdatering/ny?slot=${c.def.key}`}
+                  className="text-meta text-primary font-medium self-end transition-colors duration-quick ease-standard hover:text-primary-hover"
+                >
+                  Lägg till i efterhand
+                </Link>
+              </article>
+            );
+          })}
+        </section>
 
         <section
-          aria-labelledby="reminders-heading"
+          aria-labelledby="snabb-heading"
           className="mt-8"
         >
           <div className="flex items-baseline justify-between">
-            <h2 id="reminders-heading" className="text-h2 text-text">
-              Påminnelser
+            <h2 id="snabb-heading" className="text-h2 text-text">
+              Snabbnoteringar
             </h2>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/app/paminnelser/ny"
-                aria-label="Lägg till påminnelse"
-                className="w-12 h-12 -my-3 flex items-center justify-center text-primary transition-all duration-quick ease-standard hover:text-primary-hover active:scale-[0.95]"
-              >
-                <Plus size={20} strokeWidth={1.75} aria-hidden="true" />
-              </Link>
-              {upcomingReminders.length > 0 && (
+            <Link
+              href="/app/snabbnotering/ny"
+              className="text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
+            >
+              + Lägg till anteckning
+            </Link>
+          </div>
+          {snabbnoteringar.length === 0 ? (
+            <p className="mt-3 text-body text-text-muted">
+              Inga anteckningar idag.
+            </p>
+          ) : (
+            <ul className="mt-3 flex flex-col gap-2">
+              {snabbnoteringar.map((r) => (
+                <li
+                  key={r.id}
+                  className="rounded-md bg-surface shadow-soft p-4 flex flex-col gap-1"
+                >
+                  <p className="text-meta text-text-muted">
+                    {formatTime(new Date(r.created_at))}
+                  </p>
+                  <p className="text-body text-text">{r.free_text}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {upcomingReminders.length > 0 && (
+          <section
+            aria-labelledby="reminders-heading"
+            className="mt-8"
+          >
+            <div className="flex items-baseline justify-between">
+              <h2 id="reminders-heading" className="text-h2 text-text">
+                Påminnelser
+              </h2>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/app/paminnelser/ny"
+                  aria-label="Lägg till påminnelse"
+                  className="w-12 h-12 -my-3 flex items-center justify-center text-primary transition-all duration-quick ease-standard hover:text-primary-hover active:scale-[0.95]"
+                >
+                  <Plus size={20} strokeWidth={1.75} aria-hidden="true" />
+                </Link>
                 <Link
                   href="/app/paminnelser"
                   className="text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
                 >
                   Se alla
                 </Link>
-              )}
+              </div>
             </div>
-          </div>
-          {upcomingReminders.length === 0 ? (
-            <p className="mt-3 text-body text-text-muted">
-              Inga påminnelser just nu.
-            </p>
-          ) : (
             <ul className="mt-3 flex flex-col gap-2">
               {upcomingReminders.map((r) => (
                 <li key={r.id}>
@@ -287,17 +439,8 @@ export default async function AppPage({
                 </li>
               ))}
             </ul>
-          )}
-        </section>
-
-        <div className="mt-12">
-          <Link
-            href="/app/uppdatering/ny"
-            className="w-full flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
-          >
-            Lägg till uppdatering
-          </Link>
-        </div>
+          </section>
+        )}
       </main>
       {showToast && <Toast message="Uppdatering sparad" />}
       <BottomNav active="home" />

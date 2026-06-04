@@ -570,9 +570,20 @@ One field, one button. Help and privacy links at bottom, never above the fold. N
 
 **Greeting** changes by time of day: *God morgon* (05–10), *Hej* (10–17), *God kväll* (17–04). Never use the day of the week — that adds cognitive load.
 
-**Last update card** doubles as §5.2 "Status just nu". One card, not a feed.
+**Slot cards** replace the single "last update" card with a rolling daily journal anchored to three time-of-day slots — *Morgon* (opens 07:30), *Lunch* (11:30), *Eftermiddag* (15:00). Each slot has three rendering states:
 
-**Today list** is read-only on this screen. Tapping an item opens it.
+| State | Trigger | Classes |
+|---|---|---|
+| *Ifylld* | Row exists for slot today | `rounded-md bg-surface shadow-soft p-4`. Slot label + timestamp + 1-line summary + *Ändra* link. |
+| *Väntar* | Most recently opened slot, no data yet, no later slot filled today | `rounded-md bg-surface border border-border p-4` (outlined, not filled). Slot label + primary CTA *Lägg till … uppdatering*. |
+| *Ej ifylld* | Earlier opened slot, no data, no later slot filled today | `rounded-md bg-surface-sunken p-4 opacity-75` with *Ej ifylld* chip (`bg-warn-soft text-warn`) and *Lägg till i efterhand* text link. |
+| *Hidden* | Unfilled, and a later slot today already has data | Card omitted from home — data still recoverable via PDF export. |
+
+The fade rule keeps home focused on the present: past slots quietly disappear from the eye once the day has moved on, but never from the audit trail.
+
+**Snabbnoteringar** are a parallel append-only path for off-slot observations. Listed below the slot cards, chronologically, with a *+ Lägg till anteckning* link.
+
+**Today list (reminders)** is read-only on this screen. Tapping an item opens the Reminders page.
 
 ### 9.3 Create daily update (`/app/uppdatering/ny`)
 

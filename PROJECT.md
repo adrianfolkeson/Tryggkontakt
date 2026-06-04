@@ -84,14 +84,20 @@ Fem funktioner. Inget mer i version 1.
 
 ### 5.1 Dagens uppdatering
 
-En kort anteckning per dag och person. Skapas av den som senast varit med personen.
+En rullande dagbok kring personen, knuten till tre tidsfönster på dygnet, plus en parallell *Snabbnotering* för observationer som inte hör hemma i ett fönster.
 
-**Fält:**
-- Humör (fyra ikoner: 😌 glad / 🙂 lugn / 😐 trött / 😣 orolig)
-- Sömn föregående natt (bra / okej / dålig)
-- Energi idag (hög / medel / låg)
-- Fri text, max 280 tecken
-- Valfri bild
+**Tre fönster (svensk tid):**
+- *Morgon* öppnar 07:30
+- *Lunch* öppnar 11:30
+- *Eftermiddag* öppnar 15:00
+
+Varje fönster är en uppdatering: humör, energi, fri text (max 280 tecken), valbar synlighet (*Alla i kretsen* eller *Bara anhöriga*). *Morgon* lägger till sömn och frukost. *Lunch* och *Eftermiddag* lägger till en sammanfattning av perioden samt en måltid.
+
+**Snabbnotering** är en parallell väg för korta observationer som inte är knutna till ett fönster — *"Han var orolig efter promenaden"*. Bara fri text + synlighet.
+
+**Hemskärmen visar bara idag.** Ifyllda fönster syns som kort. Ett fönster vars tid passerat men som ännu inte fyllts visas som *Väntar* — tills ett senare fönster fylls, då försvinner det stilla från hemskärmen. Datat finns kvar i databasen och i PDF-exporten.
+
+**Mental modell**: hemskärmen är ett **nu**, PDF:en är ett **journalspår**. Varje fönster fylls en gång om dagen; *Snabbnotering* fyller mellanrummen.
 
 **Synlighet:**
 

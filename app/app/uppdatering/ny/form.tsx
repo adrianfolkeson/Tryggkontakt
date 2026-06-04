@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useActionState, useState } from "react";
 
-import { createDailyUpdate, type State } from "./actions";
+import { saveDailyUpdate, type State } from "./actions";
 
 const MOOD_OPTIONS = [
   { value: "happy", label: "Glad", emoji: "😌" },
@@ -25,10 +25,53 @@ const ENERGY_OPTIONS = [
   { value: "low", label: "Låg" },
 ] as const;
 
+const MEAL_OPTIONS = [
+  { value: "ja", label: "Ja" },
+  { value: "nej", label: "Nej" },
+  { value: "lite", label: "Lite" },
+] as const;
+
+const PERIOD_OPTIONS = [
+  { value: "bra", label: "Bra" },
+  { value: "okej", label: "Okej" },
+  { value: "tuff", label: "Tuff" },
+] as const;
+
 const VISIBILITY_OPTIONS = [
   { value: "all", label: "Alla i kretsen" },
   { value: "relatives", label: "Bara anhöriga" },
 ] as const;
+
+type Slot = "morgon" | "lunch" | "eftermiddag";
+
+const SLOT_TITLES: Record<Slot, string> = {
+  morgon: "Morgonuppdatering",
+  lunch: "Lunchuppdatering",
+  eftermiddag: "Eftermiddagsuppdatering",
+};
+
+const MEAL_LABEL_FOR_SLOT: Record<Slot, string> = {
+  morgon: "Har han ätit frukost?",
+  lunch: "Har han ätit lunch?",
+  eftermiddag: "Har han haft mellanmål?",
+};
+
+const PERIOD_LABEL_FOR_SLOT: Record<Slot, string> = {
+  morgon: "",
+  lunch: "Hur har förmiddagen varit?",
+  eftermiddag: "Hur har eftermiddagen varit?",
+};
+
+type Existing = {
+  id: string;
+  mood: string | null;
+  sleep: string | null;
+  energy: string | null;
+  meal_eaten: string | null;
+  period_summary: string | null;
+  free_text: string;
+  relatives_only: boolean;
+};
 
 const initialState: State = {};
 
@@ -100,24 +143,37 @@ function PillPicker({
 }
 
 export default function NyUppdateringForm({
+  slot,
   isRelative,
+  existing,
 }: {
+  slot: Slot;
   isRelative: boolean;
+  existing: Existing | null;
 }) {
-  const [mood, setMood] = useState("");
-  const [sleep, setSleep] = useState("");
-  const [energy, setEnergy] = useState("");
-  const [freeText, setFreeText] = useState("");
-  const [visibility, setVisibility] = useState<"all" | "relatives">("all");
+  const [mood, setMood] = useState(existing?.mood ?? "");
+  const [sleep, setSleep] = useState(existing?.sleep ?? "");
+  const [energy, setEnergy] = useState(existing?.energy ?? "");
+  const [meal, setMeal] = useState(existing?.meal_eaten ?? "");
+  const [period, setPeriod] = useState(existing?.period_summary ?? "");
+  const [freeText, setFreeText] = useState(existing?.free_text ?? "");
+  const [visibility, setVisibility] = useState<"all" | "relatives">(
+    existing?.relatives_only ? "relatives" : "all",
+  );
 
   const [state, formAction, pending] = useActionState(
-    createDailyUpdate,
+    saveDailyUpdate,
     initialState,
   );
 
   const remaining = 280 - freeText.length;
-  const canSubmit =
-    !!mood && !!sleep && !!energy && freeText.trim().length > 0;
+  const canSubmit = (() => {
+    if (!freeText.trim()) return false;
+    if (!mood || !energy || !meal) return false;
+    if (slot === "morgon" && !sleep) return false;
+    if ((slot === "lunch" || slot === "eftermiddag") && !period) return false;
+    return true;
+  })();
 
   return (
     <form action={formAction} className="min-h-dvh flex flex-col bg-bg">
@@ -148,7 +204,10 @@ export default function NyUppdateringForm({
       </header>
 
       <main className="flex-1 px-4 pb-12 max-w-content mx-auto w-full flex flex-col gap-6">
-        <h1 className="text-h1 text-text">Ny uppdatering</h1>
+        <h1 className="text-h1 text-text">{SLOT_TITLES[slot]}</h1>
+
+        <input type="hidden" name="slot" value={slot} />
+        {existing && <input type="hidden" name="id" value={existing.id} />}
 
         <PillPicker
           label="Humör"
@@ -157,15 +216,37 @@ export default function NyUppdateringForm({
           value={mood}
           onChange={setMood}
         />
+
+        {slot === "morgon" && (
+          <PillPicker
+            label="Hur har han sovit?"
+            name="sleep"
+            options={SLEEP_OPTIONS}
+            value={sleep}
+            onChange={setSleep}
+          />
+        )}
+
+        {(slot === "lunch" || slot === "eftermiddag") && (
+          <PillPicker
+            label={PERIOD_LABEL_FOR_SLOT[slot]}
+            name="periodSummary"
+            options={PERIOD_OPTIONS}
+            value={period}
+            onChange={setPeriod}
+          />
+        )}
+
         <PillPicker
-          label="Sömn i natt"
-          name="sleep"
-          options={SLEEP_OPTIONS}
-          value={sleep}
-          onChange={setSleep}
+          label={MEAL_LABEL_FOR_SLOT[slot]}
+          name="mealEaten"
+          options={MEAL_OPTIONS}
+          value={meal}
+          onChange={setMeal}
         />
+
         <PillPicker
-          label="Energi idag"
+          label="Energi"
           name="energy"
           options={ENERGY_OPTIONS}
           value={energy}

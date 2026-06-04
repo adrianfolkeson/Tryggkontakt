@@ -25,12 +25,42 @@ const ENERGY_LABEL: Record<string, string> = {
   medium: "medel",
   low: "låg",
 };
+const MEAL_LABEL: Record<string, string> = {
+  ja: "ja",
+  nej: "nej",
+  lite: "lite",
+};
+const PERIOD_LABEL: Record<string, string> = {
+  bra: "bra",
+  okej: "okej",
+  tuff: "tuff",
+};
+const SLOT_LABEL: Record<string, string> = {
+  morgon: "Morgon",
+  lunch: "Lunch",
+  eftermiddag: "Eftermiddag",
+  snabbnotering: "Anteckning",
+};
+const SLOT_ORDER: Record<string, number> = {
+  morgon: 0,
+  lunch: 1,
+  eftermiddag: 2,
+  snabbnotering: 3,
+};
+const MEAL_PREFIX_BY_SLOT: Record<string, string> = {
+  morgon: "Frukost",
+  lunch: "Lunch",
+  eftermiddag: "Mellanmål",
+};
 
 type DailyUpdate = {
   id: string;
-  mood: string;
-  sleep: string;
-  energy: string;
+  slot: string;
+  mood: string | null;
+  sleep: string | null;
+  energy: string | null;
+  meal_eaten: string | null;
+  period_summary: string | null;
   free_text: string;
   created_at: string;
   authorName: string;
@@ -137,6 +167,76 @@ function formatDateOnly(yyyymmdd: string): string {
   }).format(new Date(`${yyyymmdd}T12:00:00Z`));
 }
 
+function formatTimeOnly(iso: string): string {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(iso));
+}
+
+function formatDateGroup(iso: string): string {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
+function renderSlotDetail(u: DailyUpdate): string {
+  switch (u.slot) {
+    case "morgon": {
+      const parts: string[] = [];
+      if (u.mood) parts.push(MOOD_LABEL[u.mood] ?? u.mood);
+      if (u.sleep) parts.push(`Sömn ${SLEEP_LABEL[u.sleep] ?? u.sleep}`);
+      if (u.meal_eaten)
+        parts.push(
+          `${MEAL_PREFIX_BY_SLOT.morgon} ${MEAL_LABEL[u.meal_eaten] ?? u.meal_eaten}`,
+        );
+      if (u.energy) parts.push(`Energi ${ENERGY_LABEL[u.energy] ?? u.energy}`);
+      return parts.join(" · ");
+    }
+    case "lunch":
+    case "eftermiddag": {
+      const parts: string[] = [];
+      if (u.mood) parts.push(MOOD_LABEL[u.mood] ?? u.mood);
+      if (u.period_summary)
+        parts.push(
+          `Period ${PERIOD_LABEL[u.period_summary] ?? u.period_summary}`,
+        );
+      if (u.meal_eaten)
+        parts.push(
+          `${MEAL_PREFIX_BY_SLOT[u.slot]} ${MEAL_LABEL[u.meal_eaten] ?? u.meal_eaten}`,
+        );
+      if (u.energy) parts.push(`Energi ${ENERGY_LABEL[u.energy] ?? u.energy}`);
+      return parts.join(" · ");
+    }
+    default:
+      return "";
+  }
+}
+
+function groupUpdatesByDate(
+  rows: DailyUpdate[],
+): Array<[string, DailyUpdate[]]> {
+  const byDate = new Map<string, DailyUpdate[]>();
+  for (const r of rows) {
+    const dKey = formatDateGroup(r.created_at);
+    if (!byDate.has(dKey)) byDate.set(dKey, []);
+    byDate.get(dKey)!.push(r);
+  }
+  for (const arr of byDate.values()) {
+    arr.sort(
+      (a, b) =>
+        (SLOT_ORDER[a.slot] ?? 99) - (SLOT_ORDER[b.slot] ?? 99) ||
+        a.created_at.localeCompare(b.created_at),
+    );
+  }
+  return Array.from(byDate.entries());
+}
+
 export async function renderExportPdf(p: RenderExportParams): Promise<Buffer> {
   const fromLabel = formatDateOnly(p.fromStr);
   const toLabel = formatDateOnly(p.toStr);
@@ -178,17 +278,25 @@ export async function renderExportPdf(p: RenderExportParams): Promise<Buffer> {
         {p.updates.length === 0 ? (
           <Text style={styles.emptyData}>(ingen data)</Text>
         ) : (
-          p.updates.map((u) => (
-            <View key={u.id} style={styles.entry} wrap={false}>
-              <Text style={styles.entryMeta}>
-                {formatDateTime(u.created_at)} · {u.authorName}
-              </Text>
-              <Text style={styles.entryDetail}>
-                {MOOD_LABEL[u.mood] ?? u.mood} · Sömn{" "}
-                {SLEEP_LABEL[u.sleep] ?? u.sleep} · Energi{" "}
-                {ENERGY_LABEL[u.energy] ?? u.energy}
-              </Text>
-              <Text style={styles.body}>{u.free_text}</Text>
+          groupUpdatesByDate(p.updates).map(([dateLabel, rows]) => (
+            <View key={dateLabel} style={styles.entry}>
+              <Text style={styles.entryMeta}>{dateLabel}</Text>
+              {rows.map((u) => {
+                const slotLabel = SLOT_LABEL[u.slot] ?? u.slot;
+                const detail = renderSlotDetail(u);
+                return (
+                  <View key={u.id} style={styles.entry} wrap={false}>
+                    <Text style={styles.entryMeta}>
+                      {slotLabel} · {formatTimeOnly(u.created_at)} ·{" "}
+                      {u.authorName}
+                    </Text>
+                    {detail ? (
+                      <Text style={styles.entryDetail}>{detail}</Text>
+                    ) : null}
+                    <Text style={styles.body}>{u.free_text}</Text>
+                  </View>
+                );
+              })}
             </View>
           ))
         )}
