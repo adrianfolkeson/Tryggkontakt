@@ -24,13 +24,13 @@ export default function InviteError({
         <button
           type="button"
           onClick={reset}
-          className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+          className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
         >
           Försök igen
         </button>
         <Link
           href="/sign-in"
-          className="text-body text-primary font-medium"
+          className="text-body text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
         >
           Tillbaka till inloggning
         </Link>

@@ -26,14 +26,14 @@ export default function NyReminderForm() {
         <Link
           href="/app/paminnelser"
           aria-label="Tillbaka"
-          className="w-12 h-12 -ml-3 flex items-center justify-center text-text"
+          className="w-12 h-12 -ml-3 flex items-center justify-center text-text transition-all duration-quick ease-standard hover:text-text-muted active:scale-[0.95]"
         >
           <ArrowLeft size={24} strokeWidth={1.75} aria-hidden="true" />
         </Link>
         <button
           type="submit"
           disabled={!canSubmit || pending}
-          className="min-h-tap px-4 text-primary text-body font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
+          className="min-h-tap px-4 text-primary text-body font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-quick ease-standard hover:text-primary-hover active:scale-[0.98]"
         >
           {pending ? (
             <Loader2

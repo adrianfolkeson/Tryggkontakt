@@ -131,7 +131,7 @@ export default async function AppPage({
           <div className="mt-12">
             <Link
               href="/app/krets/ny"
-              className="flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+              className="flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
             >
               Skapa en krets
             </Link>
@@ -246,14 +246,14 @@ export default async function AppPage({
               <Link
                 href="/app/paminnelser/ny"
                 aria-label="Lägg till påminnelse"
-                className="w-12 h-12 -my-3 flex items-center justify-center text-primary"
+                className="w-12 h-12 -my-3 flex items-center justify-center text-primary transition-all duration-quick ease-standard hover:text-primary-hover active:scale-[0.95]"
               >
                 <Plus size={20} strokeWidth={1.75} aria-hidden="true" />
               </Link>
               {upcomingReminders.length > 0 && (
                 <Link
                   href="/app/paminnelser"
-                  className="text-meta text-primary font-medium"
+                  className="text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
                 >
                   Se alla
                 </Link>
@@ -293,7 +293,7 @@ export default async function AppPage({
         <div className="mt-12">
           <Link
             href="/app/uppdatering/ny"
-            className="w-full flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+            className="w-full flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
           >
             Lägg till uppdatering
           </Link>

@@ -52,7 +52,7 @@ function NavTab({
         className={`h-full flex flex-col items-center justify-center gap-1 ${
           isActive
             ? "text-primary font-semibold"
-            : "text-text-muted font-medium"
+            : "text-text-muted font-medium transition-colors duration-quick ease-standard hover:text-text"
         }`}
       >
         <Icon size={28} strokeWidth={1.75} aria-hidden="true" />

@@ -325,6 +325,20 @@ disabled       — 60% opacity, cursor not-allowed, no hover effect
 loading        — spinner instead of label, click ignored
 ```
 
+Concrete classes per variant — every interactive call site applies the matching row:
+
+| Variant | Hover | Active (pressed) | Transition |
+|---|---|---|---|
+| Primary | `hover:bg-primary-hover` (token: `--primary-hover` ≈ 6 % darker than `--primary`) | `active:scale-[0.98]` | `transition-all duration-quick ease-standard` |
+| Outline | `hover:bg-primary-soft` fills behind label | `active:scale-[0.98]` | `transition-all duration-quick ease-standard` |
+| Secondary | `hover:border-text-muted` | `active:scale-[0.98]` | `transition-all duration-quick ease-standard` |
+| Text (button-shaped, e.g. Spara in app bar) | `hover:text-primary-hover` | `active:scale-[0.98]` | `transition-colors duration-quick ease-standard` |
+| Text (inline link in paragraph) | `hover:text-primary-hover` | — (no scale; line would reflow) | `transition-colors duration-quick ease-standard` |
+| Icon-only (back arrow, Plus) | `hover:text-primary-hover` for `text-primary` icons; `hover:text-text-muted` for `text-text` icons | `active:scale-[0.95]` (smaller targets read stronger press) | `transition-all duration-quick ease-standard` |
+| BottomNav inactive tab | `hover:text-text` (inactive only — active tab stays solid) | — | `transition-colors duration-quick ease-standard` |
+
+The global `prefers-reduced-motion` rule in `globals.css` zeroes these animations to a 100 ms opacity fade for users who request it.
+
 **Never.**
 
 - No icon-only buttons in primary navigation paths.

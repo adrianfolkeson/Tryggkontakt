@@ -234,7 +234,7 @@ export default async function KretsPage({
           <div className="mt-4">
             <Link
               href="/app/krets/bjud-in"
-              className="w-full flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+              className="w-full flex items-center justify-center min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
             >
               Bjud in person
             </Link>

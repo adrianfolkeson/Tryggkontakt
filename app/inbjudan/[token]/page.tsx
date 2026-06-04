@@ -173,7 +173,7 @@ export default async function InvitePage({
               <button
                 type="submit"
                 disabled={!isPending}
-                className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard disabled:opacity-60 disabled:cursor-not-allowed"
+                className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Skicka inloggningslänk
               </button>

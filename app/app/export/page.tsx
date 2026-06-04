@@ -37,7 +37,7 @@ export default async function ExportPage() {
         <Link
           href="/app/mig"
           aria-label="Tillbaka"
-          className="w-12 h-12 -ml-3 flex items-center justify-center text-text"
+          className="w-12 h-12 -ml-3 flex items-center justify-center text-text transition-all duration-quick ease-standard hover:text-text-muted active:scale-[0.95]"
         >
           <ArrowLeft size={24} strokeWidth={1.75} aria-hidden="true" />
         </Link>
@@ -89,7 +89,7 @@ export default async function ExportPage() {
 
           <button
             type="submit"
-            className="mt-2 w-full min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+            className="mt-2 w-full min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
           >
             Generera PDF
           </button>

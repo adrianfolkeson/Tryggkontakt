@@ -115,7 +115,7 @@ export default async function SchemaPage({
         <Link
           href="/app/schema/ny"
           aria-label="Lägg till aktivitet"
-          className="w-12 h-12 -mr-3 flex items-center justify-center text-primary"
+          className="w-12 h-12 -mr-3 flex items-center justify-center text-primary transition-all duration-quick ease-standard hover:text-primary-hover active:scale-[0.95]"
         >
           <Plus size={24} strokeWidth={1.75} aria-hidden="true" />
         </Link>

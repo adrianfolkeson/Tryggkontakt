@@ -15,6 +15,7 @@ export default {
         "text-subtle": "var(--text-subtle)",
         primary: {
           DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
           text: "var(--primary-text)",
           soft: "var(--primary-soft)",
         },

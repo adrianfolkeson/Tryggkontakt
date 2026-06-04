@@ -29,7 +29,7 @@ export default function CopyLinkBanner({ link }: { link: string }) {
       <button
         type="button"
         onClick={handleCopy}
-        className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+        className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
       >
         {copied ? "Kopierad" : "Kopiera länk"}
       </button>

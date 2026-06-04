@@ -94,7 +94,7 @@ export default function NameForm() {
           <button
             type="submit"
             disabled={!canSubmit || pending}
-            className="mt-2 min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
+            className="mt-2 min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {pending ? (
               <Loader2

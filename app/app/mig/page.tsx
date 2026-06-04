@@ -69,7 +69,7 @@ export default async function MinSidaPage({
           <p className="text-body text-text break-all">{user.email}</p>
           <Link
             href="/app/mig/redigera"
-            className="text-body text-primary font-medium mt-1"
+            className="text-body text-primary font-medium mt-1 transition-colors duration-quick ease-standard hover:text-primary-hover"
           >
             Redigera mina uppgifter
           </Link>
@@ -86,14 +86,14 @@ export default async function MinSidaPage({
           <p className="text-meta text-text-muted">{roleLabel}</p>
           <Link
             href="/app/krets"
-            className="text-body text-primary font-medium mt-1"
+            className="text-body text-primary font-medium mt-1 transition-colors duration-quick ease-standard hover:text-primary-hover"
           >
             Hantera krets
           </Link>
           {isRelative && (
             <Link
               href="/app/export"
-              className="text-body text-primary font-medium min-h-tap flex items-center"
+              className="text-body text-primary font-medium min-h-tap flex items-center transition-colors duration-quick ease-standard hover:text-primary-hover"
             >
               Exportera till PDF
             </Link>
@@ -103,7 +103,7 @@ export default async function MinSidaPage({
         <form action={signOut} className="mt-12">
           <button
             type="submit"
-            className="w-full min-h-button px-6 rounded-lg border border-primary text-primary text-body font-semibold bg-transparent transition-colors duration-quick ease-standard"
+            className="w-full min-h-button px-6 rounded-lg border border-primary text-primary text-body font-semibold bg-transparent transition-all duration-quick ease-standard hover:bg-primary-soft active:scale-[0.98]"
           >
             Logga ut
           </button>

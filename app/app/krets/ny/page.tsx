@@ -85,7 +85,7 @@ export default function NewCirclePage() {
 
             <button
               type="submit"
-              className="mt-6 min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+              className="mt-6 min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
             >
               Fortsätt
             </button>
@@ -144,7 +144,7 @@ export default function NewCirclePage() {
               <button
                 type="submit"
                 disabled={pending}
-                className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
+                className="min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {pending ? (
                   <Loader2
@@ -160,7 +160,7 @@ export default function NewCirclePage() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="min-h-button px-6 rounded-lg bg-surface border border-border-strong text-text text-body font-semibold transition-colors duration-quick ease-standard"
+                className="min-h-button px-6 rounded-lg bg-surface border border-border-strong text-text text-body font-semibold transition-all duration-quick ease-standard hover:border-text-muted active:scale-[0.98]"
               >
                 Tillbaka
               </button>

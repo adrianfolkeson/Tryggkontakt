@@ -25,7 +25,7 @@ export default function AppError({
         <button
           type="button"
           onClick={reset}
-          className="w-full min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-colors duration-quick ease-standard"
+          className="w-full min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
         >
           Försök igen
         </button>
