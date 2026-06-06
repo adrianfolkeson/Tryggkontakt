@@ -53,6 +53,13 @@ export default async function NyUppdateringPage({
 
   const isRelative = membership.role === "relative";
 
+  const { data: prefs } = await supabase
+    .from("profile_public")
+    .select("default_relatives_only")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const defaultRelativesOnly = prefs?.default_relatives_only ?? false;
+
   let existing: ExistingRow | null = null;
   if (sp.id) {
     const { data } = await supabase
@@ -72,6 +79,7 @@ export default async function NyUppdateringPage({
     <NyUppdateringForm
       slot={slot as Slot}
       isRelative={isRelative}
+      defaultRelativesOnly={defaultRelativesOnly}
       existing={existing}
     />
   );

@@ -46,18 +46,21 @@ insert into circle_member (circle_id, user_id, role, valid_from, valid_to) value
    '44444444-4444-4444-4444-444444444444','coordinator',
    now() - interval '1 day', null);
 
--- Two updates by the relative author
+-- Two updates by the relative author.
+-- Both use slot='snabbnotering' because the slot CHECK constraint only
+-- requires free_text on that slot. (The mood/sleep/energy values are
+-- harmless extra fields under that slot.)
 insert into daily_update
-  (id, circle_id, author_user_id, mood, sleep, energy, free_text, relatives_only)
+  (id, circle_id, author_user_id, slot, mood, sleep, energy, free_text, relatives_only)
 values
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
    'cccccccc-cccc-cccc-cccc-cccccccccccc',
    '11111111-1111-1111-1111-111111111111',
-   'calm','good','medium','Restricted', true),
+   'snabbnotering','calm','good','medium','Restricted', true),
   ('ffffffff-ffff-ffff-ffff-ffffffffffff',
    'cccccccc-cccc-cccc-cccc-cccccccccccc',
    '11111111-1111-1111-1111-111111111111',
-   'happy','okay','high','Open', false);
+   'snabbnotering','happy','okay','high','Open', false);
 
 set local role authenticated;
 

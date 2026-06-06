@@ -69,9 +69,15 @@ export default async function MinSidaPage({
           <p className="text-body text-text break-all">{user.email}</p>
           <Link
             href="/app/mig/redigera"
-            className="text-body text-primary font-medium mt-1 transition-colors duration-quick ease-standard hover:text-primary-hover"
+            className="text-body text-primary font-medium min-h-tap flex items-center transition-colors duration-quick ease-standard hover:text-primary-hover"
           >
             Redigera mina uppgifter
+          </Link>
+          <Link
+            href="/app/installningar"
+            className="text-body text-primary font-medium min-h-tap flex items-center transition-colors duration-quick ease-standard hover:text-primary-hover"
+          >
+            Inställningar
           </Link>
         </section>
 

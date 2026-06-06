@@ -15,11 +15,15 @@ const initialState: State = {};
 
 export default function SnabbnoteringForm({
   isRelative,
+  defaultRelativesOnly,
 }: {
   isRelative: boolean;
+  defaultRelativesOnly: boolean;
 }) {
   const [freeText, setFreeText] = useState("");
-  const [visibility, setVisibility] = useState<"all" | "relatives">("all");
+  const [visibility, setVisibility] = useState<"all" | "relatives">(
+    defaultRelativesOnly ? "relatives" : "all",
+  );
 
   const [state, formAction, pending] = useActionState(
     saveSnabbnotering,

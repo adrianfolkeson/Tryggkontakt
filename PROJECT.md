@@ -268,6 +268,9 @@ Inte aspirationer, krav som testas i CI där det går.
 - Loggning av all åtkomst till personens data, synlig för anhörig
 - Datalagring: dagsuppdateringar lagras i 24 månader som standard, justerbart per krets
 - Export och radering på begäran, klart inom 30 dagar
+- Självbetjäning i appen (under *Inställningar*):
+  - **Dataportabilitet (Art 20):** ”Exportera all min data” laddar ner en JSON-fil med användarens egna uppdateringar, schema-poster, påminnelser, inbjudningar och profil. Innehåll som andra i kretsen skapat ingår inte i exporten.
+  - **Rätt till radering (Art 17):** ”Ta bort mitt konto” kräver att användaren skriver bekräftelsetexten **TA BORT** och kör därefter en atomisk RPC som raderar alla rader användaren skrivit, deras kretsmedlemskap, profil och `auth.users`-raden. Kretsar som blir tomma efter raderingen städas också bort. Sessionen avslutas direkt och användaren landar på inloggningssidan med en kort bekräftelse.
 - DPIA (konsekvensbedömning) genomförs innan lansering — vår användargrupp räknas som särskilt skyddsvärd
 
 ---

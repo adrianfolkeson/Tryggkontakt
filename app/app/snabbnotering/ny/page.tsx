@@ -27,5 +27,17 @@ export default async function SnabbnoteringPage() {
 
   const isRelative = membership.role === "relative";
 
-  return <SnabbnoteringForm isRelative={isRelative} />;
+  const { data: prefs } = await supabase
+    .from("profile_public")
+    .select("default_relatives_only")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const defaultRelativesOnly = prefs?.default_relatives_only ?? false;
+
+  return (
+    <SnabbnoteringForm
+      isRelative={isRelative}
+      defaultRelativesOnly={defaultRelativesOnly}
+    />
+  );
 }

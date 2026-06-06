@@ -145,10 +145,12 @@ function PillPicker({
 export default function NyUppdateringForm({
   slot,
   isRelative,
+  defaultRelativesOnly,
   existing,
 }: {
   slot: Slot;
   isRelative: boolean;
+  defaultRelativesOnly: boolean;
   existing: Existing | null;
 }) {
   const [mood, setMood] = useState(existing?.mood ?? "");
@@ -158,7 +160,13 @@ export default function NyUppdateringForm({
   const [period, setPeriod] = useState(existing?.period_summary ?? "");
   const [freeText, setFreeText] = useState(existing?.free_text ?? "");
   const [visibility, setVisibility] = useState<"all" | "relatives">(
-    existing?.relatives_only ? "relatives" : "all",
+    existing
+      ? existing.relatives_only
+        ? "relatives"
+        : "all"
+      : defaultRelativesOnly
+        ? "relatives"
+        : "all",
   );
 
   const [state, formAction, pending] = useActionState(

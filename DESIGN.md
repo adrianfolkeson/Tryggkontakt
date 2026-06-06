@@ -505,6 +505,21 @@ Distinct from §8.12. This is the *"Sparat-style"* affordance that fires after a
 - One at a time; not dismissible (auto-fades).
 - Use for confirming successful write actions. Toast text in Swedish, short, lower case after the verb: *"Uppdatering sparad"*, *"Aktivitet sparad"*, *"Påminnelse sparad"*, *"Inbjudan skapad"*, *"Inbjudan skickad på nytt"*, *"Sparat"*.
 
+### 8.14 Modal (destructive confirmation)
+
+Used only for hard-to-reverse actions (account deletion is the first instance, in §9.x of the settings screen). For mundane confirmations, use the inline two-step pattern on the Destructive button (§8.1) instead.
+
+- Overlay: `fixed inset-0 z-50 bg-black/40`, with `flex items-end sm:items-center justify-center`. On mobile the card slides up from the bottom edge so the keyboard does not cover the confirmation input.
+- Card: `bg-surface rounded-md shadow-soft p-4 w-full max-w-content`. Internal vertical rhythm is `gap-4`.
+- Padding respects safe areas: `paddingTop: max(env(safe-area-inset-top), 1rem)`, `paddingBottom: max(env(safe-area-inset-bottom), 1rem)`.
+- Heading: `text-h2 text-text`, paired with `aria-labelledby` on the dialog wrapper.
+- Body text: one short paragraph at `text-body text-text` describing what is irreversible.
+- Confirmation input: free-text input labelled with an explicit literal string the user must type (we use **TA BORT**). The submit button stays disabled until the value matches exactly.
+- Buttons: two-column `grid grid-cols-2 gap-2` — `Avbryt` (Secondary §8.1) on the left, `Ta bort` (Destructive §8.1) on the right.
+- Error states use the same `role="alert"` + `text-body text-warn` pattern as forms.
+
+**Deferred accessibility (acknowledged debt, do not fake completeness).** The current implementation does not yet trap focus inside the dialog, does not close on `Escape`, and does not restore focus to the trigger on close. WCAG 2.4.3 + 2.1.2 + 2.4.11 expect all three. Tracked for a follow-up pass before any second modal lands in the product; until then this pattern is approved for the single, deliberately-rare account-deletion flow only.
+
 ---
 
 ## 9. Screen patterns

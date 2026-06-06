@@ -3,9 +3,14 @@ import { signInWithMagicLink } from "./actions";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string; error?: string }>;
+  searchParams: Promise<{
+    sent?: string;
+    error?: string;
+    "konto-borttaget"?: string;
+  }>;
 }) {
   const sp = await searchParams;
+  const accountDeleted = sp["konto-borttaget"] === "1";
 
   return (
     <main className="min-h-dvh flex flex-col px-4 max-w-content mx-auto w-full">
@@ -23,6 +28,15 @@ export default async function SignInPage({
           action={signInWithMagicLink}
           className="w-full max-w-sm flex flex-col gap-6"
         >
+          {accountDeleted && (
+            <p
+              role="status"
+              className="rounded-md bg-primary-soft px-4 py-3 text-body text-text"
+            >
+              Ditt konto har tagits bort. Tack för att du använt
+              TryggKontakt.
+            </p>
+          )}
           <div className="flex flex-col gap-2">
             <label htmlFor="email" className="text-caption text-text">
               E-postadress
