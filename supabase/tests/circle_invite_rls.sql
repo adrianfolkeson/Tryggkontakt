@@ -64,7 +64,9 @@ values
   ('22222222-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
    'cccccccc-cccc-cccc-cccc-cccccccccccc',
    '11111111-1111-1111-1111-111111111111',
-   'joiner@test', 'staff', 'token-expired',
+   -- different email so the seed itself doesn't violate the
+   -- 20260605 unique partial index (one live per circle+email).
+   'joiner-expired@test', 'staff', 'token-expired',
    'pending', now() - interval '1 day');
 
 -- ============================================================
@@ -154,5 +156,83 @@ exception when others then
 end;
 $$;
 rollback to savepoint sp7;
+
+-- ============================================================
+-- Unique-index tests (20260605 migration: one live invite per
+-- (circle, email))
+-- ============================================================
+
+\echo '---test A: second pending insert same (circle, email) (expect unique-index violation)---'
+savepoint spA;
+do $$
+begin
+  insert into circle_invite
+    (circle_id, invited_by_user_id, invited_email, role, token,
+     status, expires_at)
+  values
+    ('cccccccc-cccc-cccc-cccc-cccccccccccc',
+     '11111111-1111-1111-1111-111111111111',
+     'joiner@test', 'staff', 'token-dup',
+     'pending', now() + interval '7 days');
+  raise notice 'unexpectedly succeeded';
+exception when others then
+  raise notice 'caught: %', sqlerrm;
+end;
+$$;
+rollback to savepoint spA;
+
+\echo '---test B: same (circle, email) AFTER revoking the first (expect INSERT 0 1)---'
+savepoint spB;
+update circle_invite set status = 'revoked'
+  where token = 'token-valid';
+insert into circle_invite
+  (circle_id, invited_by_user_id, invited_email, role, token,
+   status, expires_at)
+values
+  ('cccccccc-cccc-cccc-cccc-cccccccccccc',
+   '11111111-1111-1111-1111-111111111111',
+   'joiner@test', 'staff', 'token-after-revoke',
+   'pending', now() + interval '7 days');
+rollback to savepoint spB;
+
+\echo '---test C: same (circle, email) AFTER accept (expect unique-index violation)---'
+savepoint spC;
+select public.accept_invite('token-valid',
+  '44444444-4444-4444-4444-444444444444');
+do $$
+begin
+  insert into circle_invite
+    (circle_id, invited_by_user_id, invited_email, role, token,
+     status, expires_at)
+  values
+    ('cccccccc-cccc-cccc-cccc-cccccccccccc',
+     '11111111-1111-1111-1111-111111111111',
+     'joiner@test', 'staff', 'token-after-accept',
+     'pending', now() + interval '7 days');
+  raise notice 'unexpectedly succeeded';
+exception when others then
+  raise notice 'caught: %', sqlerrm;
+end;
+$$;
+rollback to savepoint spC;
+
+\echo '---test D: same (circle, email) when prior pending is expired but status not flipped (expect unique-index violation; resend goes through UPDATE)---'
+savepoint spD;
+do $$
+begin
+  insert into circle_invite
+    (circle_id, invited_by_user_id, invited_email, role, token,
+     status, expires_at)
+  values
+    ('cccccccc-cccc-cccc-cccc-cccccccccccc',
+     '11111111-1111-1111-1111-111111111111',
+     'joiner@test', 'staff', 'token-after-expired',
+     'pending', now() + interval '7 days');
+  raise notice 'unexpectedly succeeded';
+exception when others then
+  raise notice 'caught: %', sqlerrm;
+end;
+$$;
+rollback to savepoint spD;
 
 rollback;

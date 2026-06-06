@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendInviteEmail } from "@/lib/email/resend";
+import { stockholmLongDate } from "@/lib/stockholm";
 
 export type State = { error?: string };
 
@@ -57,10 +58,11 @@ export async function createInvite(
 
   const admin = createAdminClient();
 
-  // Two-step duplicate-membership check: list active members of this
-  // circle, then look for any profile_contact row whose email matches.
-  // PostgREST returns the embed as an array; querying separately keeps
-  // the types simple.
+  // Defense-in-depth: catch the "they're already in the circle via
+  // direct insert / older flow" case (no accepted-invite row to match).
+  // The unique partial index on (circle_id, lower(email)) WHERE
+  // status in ('pending','accepted') handles invite-table-level
+  // duplicates separately below.
   const { data: activeMembers } = await admin
     .from("circle_member")
     .select("user_id")
@@ -81,46 +83,87 @@ export async function createInvite(
     }
   }
 
+  // Branch on any existing "live" invite (pending or accepted) for
+  // this (circle, email). The partial unique index in the migration
+  // guarantees at most one such row.
+  //   - accepted → reject inline (already a member, via this invite
+  //     or another).
+  //   - pending + not expired → keep the same token, push expires_at
+  //     to a fresh 7-day window, refresh role + inviter, re-send the
+  //     email. "Resent" toast.
+  //   - pending + expired → regenerate token, new expires_at, refresh
+  //     role + inviter, send a fresh email. Also "resent" UX-wise.
+  //   - none → INSERT a fresh invite (original path).
   const { data: existingInvite } = await admin
     .from("circle_invite")
-    .select("id")
+    .select("id, status, expires_at, token")
     .eq("circle_id", ownMembership.circle_id)
-    .eq("status", "pending")
     .ilike("invited_email", emailRaw)
-    .limit(1)
+    .in("status", ["pending", "accepted"])
     .maybeSingle();
-  if (existingInvite) {
-    return {
-      error: "En inbjudan till den här e-postadressen väntar redan.",
-    };
-  }
 
-  const token = crypto.randomUUID();
-
-  // Supabase JS turns undefined into null and bypasses the column
-  // default, so we set expires_at explicitly. Mirrors the 7-day
-  // window the migration encodes as a default.
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     .toISOString();
 
-  const { data: insertedInvite, error: insertError } = await admin
-    .from("circle_invite")
-    .insert({
-      circle_id: ownMembership.circle_id,
-      invited_by_user_id: user.id,
-      invited_email: emailRaw,
-      role,
-      token,
-      expires_at: expiresAt,
-    })
-    .select("id, token")
-    .maybeSingle();
+  let token: string;
+  let wasResend = false;
 
-  if (insertError || !insertedInvite) {
-    console.error("circle_invite insert failed:", insertError);
-    return { error: GENERIC_ERROR };
+  if (existingInvite) {
+    if (existingInvite.status === "accepted") {
+      return { error: "Den här personen är redan med i kretsen." };
+    }
+
+    // status === 'pending'
+    const isExpired =
+      new Date(existingInvite.expires_at).getTime() < Date.now();
+
+    token = isExpired ? crypto.randomUUID() : existingInvite.token;
+
+    const updates: {
+      expires_at: string;
+      role: string;
+      invited_by_user_id: string;
+      token?: string;
+    } = {
+      expires_at: expiresAt,
+      role,
+      invited_by_user_id: user.id,
+    };
+    if (isExpired) updates.token = token;
+
+    const { error: updateError } = await admin
+      .from("circle_invite")
+      .update(updates)
+      .eq("id", existingInvite.id);
+
+    if (updateError) {
+      console.error("circle_invite resend update failed:", updateError);
+      return { error: GENERIC_ERROR };
+    }
+    wasResend = true;
+  } else {
+    token = crypto.randomUUID();
+    const { error: insertError } = await admin
+      .from("circle_invite")
+      .insert({
+        circle_id: ownMembership.circle_id,
+        invited_by_user_id: user.id,
+        invited_email: emailRaw,
+        role,
+        token,
+        expires_at: expiresAt,
+      });
+    if (insertError) {
+      console.error("circle_invite insert failed:", insertError);
+      return { error: GENERIC_ERROR };
+    }
   }
 
+  // ────────────────────────────────────────────────────────────────
+  // Email send fires on BOTH branches (INSERT and UPDATE). This is
+  // the only path that ends in a delivered email to the invitee, so
+  // both new and resent invites flow through here.
+  // ────────────────────────────────────────────────────────────────
   const { data: inviterProfile } = await admin
     .from("profile_public")
     .select("display_name")
@@ -141,6 +184,7 @@ export async function createInvite(
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://tryggkontakt.vercel.app";
   const inviteUrl = `${siteUrl}/inbjudan/${token}`;
+  const sentAtLabel = stockholmLongDate(new Date());
 
   try {
     await sendInviteEmail({
@@ -149,6 +193,7 @@ export async function createInvite(
       personName,
       roleLabel: ROLE_LABEL[role] ?? role,
       inviteUrl,
+      sentAtLabel,
     });
   } catch (e) {
     // Email failure must not block invite creation. The banner on
@@ -156,5 +201,6 @@ export async function createInvite(
     console.error("invite email send failed:", e);
   }
 
-  redirect(`/app/krets?invited=${token}&sparat=1`);
+  const sparatKey = wasResend ? "resent" : "1";
+  redirect(`/app/krets?invited=${token}&sparat=${sparatKey}`);
 }

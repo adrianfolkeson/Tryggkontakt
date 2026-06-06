@@ -53,6 +53,16 @@ export function stockholmWeekdayShort(d: Date): string {
   }).format(d);
 }
 
+// Swedish long date for `d` in Stockholm time — e.g. "5 juni".
+// Used for human-readable subject suffixes / display contexts.
+export function stockholmLongDate(d: Date): string {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    day: "numeric",
+    month: "long",
+  }).format(d);
+}
+
 // Calendar-only date arithmetic: returns dateStr + daysOffset as
 // "YYYY-MM-DD". Used to walk week boundaries via date strings so the
 // downstream parseStockholmDateTime picks up DST-correct offsets per

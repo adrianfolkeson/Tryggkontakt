@@ -124,7 +124,9 @@ export default async function KretsPage({
 
   const sp = await searchParams;
   const justInvitedToken = sp.invited;
-  const showToast = sp.sparat === "1";
+  const showToast = sp.sparat === "1" || sp.sparat === "resent";
+  const toastMessage =
+    sp.sparat === "resent" ? "Inbjudan skickad på nytt" : "Inbjudan skapad";
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://tryggkontakt.vercel.app";
   const justInvitedUrl =
@@ -242,7 +244,7 @@ export default async function KretsPage({
         )}
       </main>
 
-      {showToast && <Toast message="Inbjudan skapad" />}
+      {showToast && <Toast message={toastMessage} />}
       <BottomNav active="profile" />
     </div>
   );
