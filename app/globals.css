@@ -18,12 +18,17 @@
   --warn-soft: #F7E8DC;
   --danger: #9B3232;
   --focus: #1F4A66;
+  --text-scale: 1;
 }
+
+html[data-text-size="small"]  { --text-scale: 0.9; }
+html[data-text-size="medium"] { --text-scale: 1; }
+html[data-text-size="large"]  { --text-scale: 1.15; }
 
 html {
   background: var(--bg);
   color: var(--text);
-  font-size: 16px;
+  font-size: calc(16px * var(--text-scale));
   -webkit-text-size-adjust: 100%;
 }
 

@@ -5,6 +5,45 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
+const TEXT_SIZES = ["small", "medium", "large"] as const;
+export type TextSize = (typeof TEXT_SIZES)[number];
+const TEXT_SIZE_COOKIE = "tk-text-size";
+const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+
+export async function updateTextSize(
+  size: TextSize,
+): Promise<{ error?: string }> {
+  if (!(TEXT_SIZES as readonly string[]).includes(size)) {
+    return { error: "invalid" };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "auth" };
+  }
+
+  const { error } = await supabase
+    .from("profile_public")
+    .update({ text_size: size })
+    .eq("user_id", user.id);
+  if (error) {
+    return { error: "save" };
+  }
+
+  const store = await cookies();
+  store.set(TEXT_SIZE_COOKIE, size, {
+    httpOnly: false,
+    sameSite: "lax",
+    maxAge: ONE_YEAR_SECONDS,
+    path: "/",
+  });
+
+  redirect("/app/installningar?sparat=1");
+}
+
 export async function updateDefaultVisibility(
   relativesOnly: boolean,
 ): Promise<{ error?: string }> {

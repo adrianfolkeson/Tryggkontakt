@@ -59,5 +59,5 @@ export async function saveSnabbnotering(
     return { error: GENERIC_ERROR };
   }
 
-  redirect("/app?sparat=1");
+  redirect("/app/anteckning?sparat=1");
 }

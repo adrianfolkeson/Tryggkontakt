@@ -1,6 +1,12 @@
-import { Calendar, House, User, type LucideIcon } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  House,
+  User,
+  type LucideIcon,
+} from "lucide-react";
 
-type ActiveTab = "home" | "calendar" | "profile";
+type ActiveTab = "home" | "calendar" | "notes" | "profile";
 
 export default function BottomNav({ active }: { active?: ActiveTab }) {
   return (
@@ -21,6 +27,12 @@ export default function BottomNav({ active }: { active?: ActiveTab }) {
           label="Kalender"
           Icon={Calendar}
           isActive={active === "calendar"}
+        />
+        <NavTab
+          href="/app/anteckning"
+          label="Anteckning"
+          Icon={FileText}
+          isActive={active === "notes"}
         />
         <NavTab
           href="/app/mig"

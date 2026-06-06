@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,6 +9,8 @@ const inter = Inter({
   display: "swap",
   variable: "--font-inter",
 });
+
+const TEXT_SIZE_COOKIE = "tk-text-size";
 
 export const metadata: Metadata = {
   title: "TryggKontakt",
@@ -35,13 +38,28 @@ export const viewport: Viewport = {
   themeColor: "#3F7A6E",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read text-size preference from a cookie set by /app/installningar.
+  // Edge case: users without the tk-text-size cookie default to medium
+  // until they visit /app/installningar once. Acceptable trade-off vs
+  // a DB read on every page load.
+  const store = await cookies();
+  const cookieValue = store.get(TEXT_SIZE_COOKIE)?.value;
+  const dataTextSize =
+    cookieValue === "small" || cookieValue === "large"
+      ? cookieValue
+      : undefined;
+
   return (
-    <html lang="sv-SE" className={inter.variable}>
+    <html
+      lang="sv-SE"
+      className={inter.variable}
+      data-text-size={dataTextSize}
+    >
       <body>{children}</body>
     </html>
   );

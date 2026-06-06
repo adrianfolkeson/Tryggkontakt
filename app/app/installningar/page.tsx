@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import Toast from "../../_components/toast";
 import BottomNav from "../_components/bottom-nav";
 import DeleteAccountModal from "./_components/delete-account-modal";
+import TextSizeSection from "./_components/text-size-section";
 import VisibilitySection from "./_components/visibility-section";
 
 export default async function InstallningarPage({
@@ -26,11 +27,12 @@ export default async function InstallningarPage({
 
   const { data: profile } = await supabase
     .from("profile_public")
-    .select("default_relatives_only")
+    .select("default_relatives_only, text_size")
     .eq("user_id", user.id)
     .maybeSingle();
 
   const defaultRelativesOnly = profile?.default_relatives_only ?? false;
+  const textSize = profile?.text_size ?? "medium";
 
   return (
     <div className="min-h-dvh flex flex-col bg-bg">
@@ -53,6 +55,19 @@ export default async function InstallningarPage({
             Du kan ändra för varje enskild uppdatering.
           </p>
           <VisibilitySection initial={defaultRelativesOnly} />
+        </section>
+
+        <section
+          aria-labelledby="text-size-heading"
+          className="rounded-md bg-surface shadow-soft p-4 flex flex-col gap-3"
+        >
+          <h2 id="text-size-heading" className="text-h2 text-text">
+            Textstorlek
+          </h2>
+          <p className="text-meta text-text-muted">
+            Större text kan göra det enklare att läsa.
+          </p>
+          <TextSizeSection initial={textSize} />
         </section>
 
         <section

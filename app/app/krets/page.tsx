@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import Toast from "../../_components/toast";
 import BottomNav from "../_components/bottom-nav";
 import CopyLinkBanner from "./_components/copy-link-banner";
+import RevokeMemberModal from "./_components/revoke-member-modal";
 
 const ROLE_LABEL: Record<string, string> = {
   relative: "Anhörig",
@@ -14,8 +15,10 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 type MemberRow = {
+  member_id: string;
   user_id: string;
   role: string;
+  valid_to: string | null;
   profile_public: {
     display_name: string;
     phone_number: string | null;
@@ -33,7 +36,10 @@ type InviteRow = {
 export default async function KretsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ invited?: string; sparat?: string }>;
+  searchParams: Promise<{
+    invited?: string;
+    sparat?: string;
+  }>;
 }) {
   const supabase = await createClient();
   const {
@@ -69,11 +75,13 @@ export default async function KretsPage({
   // No FK between circle_member and profile_public / profile_contact
   // (both reference auth.users), so PostgREST embeds don't resolve.
   // Two-step lookup: members, then matching profile rows by user_id.
+  //
+  // Fetch all-time members (active + revoked) so the page can render
+  // both Aktiva and Tidigare sections.
   const { data: memberRowsData } = await supabase
     .from("circle_member")
-    .select("user_id, role, valid_from")
+    .select("id, user_id, role, valid_from, valid_to")
     .eq("circle_id", ownMembership.circle_id)
-    .is("valid_to", null)
     .order("valid_from", { ascending: true });
 
   const memberRows = memberRowsData ?? [];
@@ -105,11 +113,23 @@ export default async function KretsPage({
   }
 
   const members: MemberRow[] = memberRows.map((m) => ({
+    member_id: m.id,
     user_id: m.user_id,
     role: m.role,
+    valid_to: m.valid_to,
     profile_public: profilesById.get(m.user_id) ?? null,
     profile_contact: contactsById.get(m.user_id) ?? null,
   }));
+
+  const activeMembers = members.filter((m) => m.valid_to === null);
+  const pastMembers = members.filter((m) => m.valid_to !== null);
+
+  const revokedDateFmt = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 
   let invites: InviteRow[] = [];
   if (isRelative) {
@@ -124,9 +144,16 @@ export default async function KretsPage({
 
   const sp = await searchParams;
   const justInvitedToken = sp.invited;
-  const showToast = sp.sparat === "1" || sp.sparat === "resent";
+  const showToast =
+    sp.sparat === "1" ||
+    sp.sparat === "resent" ||
+    sp.sparat === "avslutad";
   const toastMessage =
-    sp.sparat === "resent" ? "Inbjudan skickad på nytt" : "Inbjudan skapad";
+    sp.sparat === "resent"
+      ? "Inbjudan skickad på nytt"
+      : sp.sparat === "avslutad"
+        ? "Medlemskap avslutat"
+        : "Inbjudan skapad";
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://tryggkontakt.vercel.app";
   const justInvitedUrl =
@@ -148,22 +175,24 @@ export default async function KretsPage({
         {justInvitedUrl && <CopyLinkBanner link={justInvitedUrl} />}
 
         <section
-          aria-labelledby="members-heading"
+          aria-labelledby="active-members-heading"
           className="flex flex-col gap-3"
         >
-          <h2 id="members-heading" className="text-h2 text-text">
-            Medlemmar
+          <h2 id="active-members-heading" className="text-h2 text-text">
+            Aktiva medlemmar
           </h2>
           <ul className="flex flex-col gap-2">
-            {members.map((m) => {
+            {activeMembers.map((m) => {
               const name =
                 m.profile_public?.display_name?.trim() ||
                 m.profile_contact?.email ||
                 "(okänd)";
               const isSelf = m.user_id === user.id;
+              const canRevoke =
+                isRelative && !isSelf && m.role !== "relative";
               return (
                 <li
-                  key={m.user_id}
+                  key={m.member_id}
                   className="rounded-md bg-surface shadow-soft p-4 flex flex-col gap-1"
                 >
                   <p className="text-body text-text">
@@ -185,11 +214,51 @@ export default async function KretsPage({
                       </a>
                     </p>
                   )}
+                  {canRevoke && (
+                    <RevokeMemberModal
+                      memberId={m.member_id}
+                      memberName={name}
+                    />
+                  )}
                 </li>
               );
             })}
           </ul>
         </section>
+
+        {pastMembers.length > 0 && (
+          <section
+            aria-labelledby="past-members-heading"
+            className="flex flex-col gap-3"
+          >
+            <h2 id="past-members-heading" className="text-h2 text-text">
+              Tidigare medlemmar
+            </h2>
+            <ul className="flex flex-col gap-2">
+              {pastMembers.map((m) => {
+                const name =
+                  m.profile_public?.display_name?.trim() ||
+                  m.profile_contact?.email ||
+                  "(okänd)";
+                return (
+                  <li
+                    key={m.member_id}
+                    className="rounded-md bg-surface shadow-soft p-4 flex flex-col gap-1"
+                  >
+                    <p className="text-body text-text">{name}</p>
+                    <p className="text-meta text-text-muted">
+                      {ROLE_LABEL[m.role] ?? m.role}
+                      {" · Avslutad "}
+                      {m.valid_to
+                        ? revokedDateFmt.format(new Date(m.valid_to))
+                        : ""}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {isRelative && (
           <section

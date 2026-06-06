@@ -121,7 +121,10 @@ function PillPicker({
               }`}
             >
               {opt.emoji ? (
-                <span className="text-[28px] leading-none" aria-hidden="true">
+                <span
+                  className="text-[1.75rem] leading-none"
+                  aria-hidden="true"
+                >
                   {opt.emoji}
                 </span>
               ) : null}
