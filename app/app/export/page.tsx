@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addDaysToDateStr, stockholmDateStr } from "@/lib/stockholm";
 
+import ExportForm from "./form";
+
 export default async function ExportPage() {
   const supabase = await createClient();
   const {
@@ -33,7 +35,7 @@ export default async function ExportPage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-bg">
-      <header className="sticky top-0 bg-bg flex items-center h-14 px-4 max-w-content mx-auto w-full gap-3">
+      <header style={{ paddingTop: "env(safe-area-inset-top)" }} className="sticky top-0 bg-bg flex items-center h-14 px-4 max-w-content mx-auto w-full gap-3">
         <Link
           href="/app/mig"
           aria-label="Tillbaka"
@@ -51,49 +53,7 @@ export default async function ExportPage() {
           att ta med till läkarbesök.
         </p>
 
-        <form
-          method="POST"
-          action="/api/export/pdf"
-          className="flex flex-col gap-6"
-        >
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="from"
-              className="text-caption text-text font-medium"
-            >
-              Från
-            </label>
-            <input
-              id="from"
-              name="from"
-              type="date"
-              required
-              defaultValue={fromDefault}
-              className="min-h-button px-4 rounded-sm bg-surface-sunken border border-border text-body text-text focus:border-focus focus:border-2 focus:outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="to" className="text-caption text-text font-medium">
-              Till
-            </label>
-            <input
-              id="to"
-              name="to"
-              type="date"
-              required
-              defaultValue={today}
-              className="min-h-button px-4 rounded-sm bg-surface-sunken border border-border text-body text-text focus:border-focus focus:border-2 focus:outline-none"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="mt-2 w-full min-h-button px-6 rounded-lg bg-primary text-primary-text text-body font-semibold transition-all duration-quick ease-standard hover:bg-primary-hover active:scale-[0.98]"
-          >
-            Generera PDF
-          </button>
-        </form>
+        <ExportForm fromDefault={fromDefault} today={today} />
       </main>
     </div>
   );

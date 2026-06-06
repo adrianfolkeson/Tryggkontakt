@@ -3,7 +3,7 @@ import BottomNav from "./_components/bottom-nav";
 export default function AppLoading() {
   return (
     <div className="min-h-dvh flex flex-col bg-bg">
-      <header className="sticky top-0 bg-bg flex items-center h-14 px-4 max-w-content mx-auto w-full">
+      <header style={{ paddingTop: "env(safe-area-inset-top)" }} className="sticky top-0 bg-bg flex items-center h-14 px-4 max-w-content mx-auto w-full">
         <div
           aria-hidden="true"
           className="h-6 w-32 rounded-sm bg-surface-sunken animate-pulse"

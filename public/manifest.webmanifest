@@ -1,0 +1,19 @@
+{
+  "name": "TryggKontakt",
+  "short_name": "Trygg",
+  "description": "En lugn kontakt mellan alla som stöttar.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#FAF8F4",
+  "theme_color": "#3F7A6E",
+  "lang": "sv-SE",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

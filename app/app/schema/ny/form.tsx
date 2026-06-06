@@ -24,7 +24,7 @@ export default function NySchemaForm() {
 
   return (
     <form action={formAction} className="min-h-dvh flex flex-col bg-bg">
-      <header className="sticky top-0 bg-bg flex items-center justify-between h-14 px-4 max-w-content mx-auto w-full">
+      <header style={{ paddingTop: "env(safe-area-inset-top)" }} className="sticky top-0 bg-bg flex items-center justify-between h-14 px-4 max-w-content mx-auto w-full">
         <Link
           href="/app/schema"
           aria-label="Tillbaka"

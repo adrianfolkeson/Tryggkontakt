@@ -54,7 +54,7 @@ export default async function MinSidaPage({
 
   return (
     <div className="min-h-dvh flex flex-col bg-bg">
-      <header className="sticky top-0 bg-bg flex items-center h-14 px-4 max-w-content mx-auto w-full">
+      <header style={{ paddingTop: "env(safe-area-inset-top)" }} className="sticky top-0 bg-bg flex items-center h-14 px-4 max-w-content mx-auto w-full">
         <h1 className="text-h1 text-text">Min sida</h1>
       </header>
 

@@ -311,7 +311,7 @@ export default async function AppPage({
                   <p className="text-body-lg text-text">{c.row.free_text}</p>
                   <Link
                     href={`/app/uppdatering/ny?slot=${c.def.key}&id=${c.row.id}`}
-                    className="text-meta text-primary font-medium self-end transition-colors duration-quick ease-standard hover:text-primary-hover"
+                    className="min-h-tap inline-flex items-center px-2 -mx-2 self-end text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
                   >
                     Ändra
                   </Link>
@@ -347,7 +347,7 @@ export default async function AppPage({
                 </div>
                 <Link
                   href={`/app/uppdatering/ny?slot=${c.def.key}`}
-                  className="text-meta text-primary font-medium self-end transition-colors duration-quick ease-standard hover:text-primary-hover"
+                  className="min-h-tap inline-flex items-center px-2 -mx-2 self-end text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
                 >
                   Lägg till i efterhand
                 </Link>
@@ -366,7 +366,7 @@ export default async function AppPage({
             </h2>
             <Link
               href="/app/snabbnotering/ny"
-              className="text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
+              className="min-h-tap inline-flex items-center px-2 -mx-2 text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
             >
               + Lägg till anteckning
             </Link>
@@ -411,7 +411,7 @@ export default async function AppPage({
                 </Link>
                 <Link
                   href="/app/paminnelser"
-                  className="text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
+                  className="min-h-tap inline-flex items-center px-2 -mx-2 text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"
                 >
                   Se alla
                 </Link>

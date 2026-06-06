@@ -339,6 +339,8 @@ Concrete classes per variant — every interactive call site applies the matchin
 
 The global `prefers-reduced-motion` rule in `globals.css` zeroes these animations to a 100 ms opacity fade for users who request it.
 
+**Pending state for Route Handler forms.** Most forms in the app submit to a Server Action and use `useActionState` for the `pending` flag. Forms that POST to a Route Handler instead (e.g. binary-download endpoints like `/api/export/pdf`) cannot use `useFormStatus` because no Server Action wraps the dispatch. The pattern: declare a local `const [pending, setPending] = useState(false)` in a client form, set true in `onSubmit`, clear with a 5-second `setTimeout` (the browser fires no callback when a download begins). Reuse the same Spara-style `Loader2` swap inside the button.
+
 **Never.**
 
 - No icon-only buttons in primary navigation paths.

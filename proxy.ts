@@ -31,13 +31,17 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (!user && pathname.startsWith("/app")) {
+  const isAppRoute = pathname === "/app" || pathname.startsWith("/app/");
+  const isSignInRoute =
+    pathname === "/sign-in" || pathname.startsWith("/sign-in/");
+
+  if (!user && isAppRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname.startsWith("/sign-in")) {
+  if (user && isSignInRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
