@@ -3,12 +3,18 @@ import { Plus } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  ENERGY_LABEL,
+  MOOD_LABEL,
+  SLOT_FIELD_LABELS,
+  type NamedSlot,
+} from "@/lib/slots";
 import { addDaysToDateStr, stockholmDateStr } from "@/lib/stockholm";
 
 import Toast from "../_components/toast";
 import BottomNav from "./_components/bottom-nav";
 
-type Slot = "morgon" | "lunch" | "eftermiddag";
+type Slot = NamedSlot;
 
 const SLOT_DEFS: Array<{
   key: Slot;
@@ -36,51 +42,48 @@ const SLOT_DEFS: Array<{
   },
 ];
 
-const MOOD_INLINE: Record<string, string> = {
+// Legacy free-text values from the pre-structured-slot rows below get
+// nicer labels for the home preview. New structured-slot rows render
+// the four labeled fields directly and skip this map entirely.
+const LEGACY_MOOD: Record<string, string> = {
   happy: "Glad",
   calm: "Lugn",
   tired: "Trött",
   worried: "Orolig",
 };
-const SLEEP_INLINE: Record<string, string> = {
-  good: "bra",
-  okay: "okej",
-  poor: "dålig",
-};
-const ENERGY_INLINE: Record<string, string> = {
-  high: "hög",
-  medium: "medel",
-  low: "låg",
-};
-const MEAL_INLINE: Record<string, string> = {
-  ja: "ja",
-  nej: "nej",
-  lite: "lite",
-};
-const PERIOD_INLINE: Record<string, string> = {
-  bra: "bra",
-  okej: "okej",
-  tuff: "tuff",
-};
-
-const MEAL_PREFIX_BY_SLOT: Record<string, string> = {
-  morgon: "Frukost",
-  lunch: "Lunch",
-  eftermiddag: "Mellanmål",
-};
 
 type Row = {
   id: string;
   slot: string;
+  period_note: string | null;
+  meal_note: string | null;
   mood: string | null;
-  sleep: string | null;
   energy: string | null;
-  meal_eaten: string | null;
-  period_summary: string | null;
-  free_text: string;
+  free_text: string | null;
   created_at: string;
   relatives_only: boolean;
 };
+
+type SummaryLine = { label: string; value: string };
+
+function summaryLines(r: Row): SummaryLine[] {
+  if (
+    r.slot !== "morgon" &&
+    r.slot !== "lunch" &&
+    r.slot !== "eftermiddag"
+  ) {
+    return [];
+  }
+  const labels = SLOT_FIELD_LABELS[r.slot as NamedSlot];
+  const lines: SummaryLine[] = [];
+  if (r.period_note) lines.push({ label: labels.period, value: r.period_note });
+  if (r.meal_note) lines.push({ label: labels.meal, value: r.meal_note });
+  if (r.mood) {
+    lines.push({ label: MOOD_LABEL, value: LEGACY_MOOD[r.mood] ?? r.mood });
+  }
+  if (r.energy) lines.push({ label: ENERGY_LABEL, value: r.energy });
+  return lines;
+}
 
 function greetingFor(date: Date): string {
   const h = date.getHours();
@@ -117,23 +120,6 @@ function formatHomeReminderTime(d: Date, now: Date): string {
     month: "short",
   }).format(d);
   return `${date} ${time}`;
-}
-
-function inlineSummary(r: Row): string {
-  const parts: string[] = [];
-  if (r.mood) parts.push(MOOD_INLINE[r.mood] ?? r.mood);
-  if (r.slot === "morgon" && r.sleep) {
-    parts.push(`Sov ${SLEEP_INLINE[r.sleep] ?? r.sleep}`);
-  }
-  if ((r.slot === "lunch" || r.slot === "eftermiddag") && r.period_summary) {
-    parts.push(`Period ${PERIOD_INLINE[r.period_summary] ?? r.period_summary}`);
-  }
-  if (r.meal_eaten) {
-    const prefix = MEAL_PREFIX_BY_SLOT[r.slot] ?? "Måltid";
-    parts.push(`${prefix} ${MEAL_INLINE[r.meal_eaten] ?? r.meal_eaten}`);
-  }
-  if (r.energy) parts.push(`Energi ${ENERGY_INLINE[r.energy] ?? r.energy}`);
-  return parts.join(" · ");
 }
 
 export default async function AppPage({
@@ -203,7 +189,7 @@ export default async function AppPage({
   const { data: todayRowsData } = await supabase
     .from("daily_update")
     .select(
-      "id, slot, mood, sleep, energy, meal_eaten, period_summary, free_text, created_at, relatives_only",
+      "id, slot, period_note, meal_note, mood, energy, free_text, created_at, relatives_only",
     )
     .eq("circle_id", membership.circle_id)
     .gte("created_at", startUtc)
@@ -307,8 +293,33 @@ export default async function AppPage({
                       Bara anhöriga
                     </span>
                   )}
-                  <p className="text-body text-text">{inlineSummary(c.row)}</p>
-                  <p className="text-body-lg text-text">{c.row.free_text}</p>
+                  {(() => {
+                    const lines = summaryLines(c.row);
+                    if (lines.length > 0) {
+                      return (
+                        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+                          {lines.map((l) => (
+                            <div key={l.label} className="contents">
+                              <dt className="text-meta text-text-muted">
+                                {l.label}
+                              </dt>
+                              <dd className="text-body text-text">
+                                {l.value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      );
+                    }
+                    if (c.row.free_text) {
+                      return (
+                        <p className="text-body-lg text-text">
+                          {c.row.free_text}
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
                   <Link
                     href={`/app/uppdatering/ny?slot=${c.def.key}&id=${c.row.id}`}
                     className="min-h-tap inline-flex items-center px-2 -mx-2 self-end text-meta text-primary font-medium transition-colors duration-quick ease-standard hover:text-primary-hover"

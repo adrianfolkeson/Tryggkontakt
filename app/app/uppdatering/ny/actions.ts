@@ -3,12 +3,12 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import {
+  addDaysToDateStr,
+  parseStockholmDateTime,
+  stockholmDateStr,
+} from "@/lib/stockholm";
 
-const MOODS = ["happy", "calm", "tired", "worried"] as const;
-const SLEEPS = ["good", "okay", "poor"] as const;
-const ENERGIES = ["high", "medium", "low"] as const;
-const MEALS = ["ja", "nej", "lite"] as const;
-const PERIODS = ["bra", "okej", "tuff"] as const;
 const VISIBILITIES = ["all", "relatives"] as const;
 const SLOTS = ["morgon", "lunch", "eftermiddag"] as const;
 
@@ -16,6 +16,16 @@ export type State = { error?: string };
 
 const GENERIC_ERROR =
   "Det gick inte att spara just nu. Försök igen om en stund.";
+
+const MAX_NOTE = 280;
+const MAX_INLINE = 80;
+
+function normalize(value: FormDataEntryValue | null, max: number): string | null {
+  const trimmed = String(value ?? "").trim();
+  if (trimmed.length === 0) return null;
+  if (trimmed.length > max) return trimmed.slice(0, max);
+  return trimmed;
+}
 
 export async function saveDailyUpdate(
   _prev: State,
@@ -36,26 +46,14 @@ export async function saveDailyUpdate(
     return { error: GENERIC_ERROR };
   }
 
-  const mood = String(formData.get("mood") ?? "");
-  const sleep = String(formData.get("sleep") ?? "");
-  const energy = String(formData.get("energy") ?? "");
-  const meal = String(formData.get("mealEaten") ?? "");
-  const periodSummary = String(formData.get("periodSummary") ?? "");
+  const periodNote = normalize(formData.get("periodNote"), MAX_NOTE);
+  const mealNote = normalize(formData.get("mealNote"), MAX_NOTE);
+  const mood = normalize(formData.get("mood"), MAX_INLINE);
+  const energy = normalize(formData.get("energy"), MAX_INLINE);
   const visibility = String(formData.get("visibility") ?? "all");
-  const freeText = String(formData.get("freeText") ?? "").trim();
 
-  if (!freeText || freeText.length > 280) return { error: GENERIC_ERROR };
-  if (!(MOODS as readonly string[]).includes(mood)) return { error: GENERIC_ERROR };
-  if (!(ENERGIES as readonly string[]).includes(energy)) return { error: GENERIC_ERROR };
-  if (!(MEALS as readonly string[]).includes(meal)) return { error: GENERIC_ERROR };
-  if (!(VISIBILITIES as readonly string[]).includes(visibility)) return { error: GENERIC_ERROR };
-
-  if (slot === "morgon") {
-    if (!(SLEEPS as readonly string[]).includes(sleep))
-      return { error: GENERIC_ERROR };
-  } else {
-    if (!(PERIODS as readonly string[]).includes(periodSummary))
-      return { error: GENERIC_ERROR };
+  if (!(VISIBILITIES as readonly string[]).includes(visibility)) {
+    return { error: GENERIC_ERROR };
   }
 
   const { data: membership } = await supabase
@@ -73,21 +71,50 @@ export async function saveDailyUpdate(
     return { error: GENERIC_ERROR };
   }
 
+  // Named-slot rows write only the new structured columns. free_text
+  // is left null so the slot-conditional CHECK (snabbnotering only)
+  // does not fire.
   const payload = {
+    period_note: periodNote,
+    meal_note: mealNote,
     mood,
-    sleep: slot === "morgon" ? sleep : null,
     energy,
-    meal_eaten: meal,
-    period_summary: slot === "morgon" ? null : periodSummary,
-    free_text: freeText,
     relatives_only: relativesOnly,
   };
 
-  if (id) {
+  // Upsert on (circle_id, slot, Stockholm-day): if a row already
+  // exists for this slot today, overwrite it instead of colliding
+  // with the daily_update_slot_per_day_unique index. The unique
+  // index is defined on a functional expression (timezone-cast of
+  // created_at) so Supabase upsert by onConflict can't target it
+  // directly — we resolve the existing row in app code first.
+  let targetId = id;
+  if (!targetId) {
+    const today = stockholmDateStr(new Date());
+    const startUtc = parseStockholmDateTime(`${today}T00:00`).toISOString();
+    const endUtc = parseStockholmDateTime(
+      `${addDaysToDateStr(today, 1)}T00:00`,
+    ).toISOString();
+
+    const { data: existing } = await supabase
+      .from("daily_update")
+      .select("id")
+      .eq("circle_id", membership.circle_id)
+      .eq("slot", slot)
+      .gte("created_at", startUtc)
+      .lt("created_at", endUtc)
+      .maybeSingle();
+
+    if (existing?.id) {
+      targetId = existing.id;
+    }
+  }
+
+  if (targetId) {
     const { error } = await supabase
       .from("daily_update")
       .update(payload)
-      .eq("id", id)
+      .eq("id", targetId)
       .eq("circle_id", membership.circle_id);
     if (error) {
       console.error("daily_update update failed:", error);

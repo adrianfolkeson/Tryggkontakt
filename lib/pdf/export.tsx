@@ -9,32 +9,17 @@ import {
 
 // Helvetica (React-PDF default) has no emoji glyphs, so emoji
 // would render as broken stubs in the PDF. Use Swedish labels only.
-const MOOD_LABEL: Record<string, string> = {
+//
+// Legacy mood values from pre-F5 rows (`happy`/`calm`/`tired`/`worried`)
+// get translated to a human-readable label. New rows store arbitrary
+// free text in `mood`, which renders unchanged.
+const LEGACY_MOOD: Record<string, string> = {
   happy: "glad",
   calm: "lugn",
   tired: "trött",
   worried: "orolig",
 };
-const SLEEP_LABEL: Record<string, string> = {
-  good: "bra",
-  okay: "okej",
-  poor: "dålig",
-};
-const ENERGY_LABEL: Record<string, string> = {
-  high: "hög",
-  medium: "medel",
-  low: "låg",
-};
-const MEAL_LABEL: Record<string, string> = {
-  ja: "ja",
-  nej: "nej",
-  lite: "lite",
-};
-const PERIOD_LABEL: Record<string, string> = {
-  bra: "bra",
-  okej: "okej",
-  tuff: "tuff",
-};
+
 const SLOT_LABEL: Record<string, string> = {
   morgon: "Morgon",
   lunch: "Lunch",
@@ -47,21 +32,24 @@ const SLOT_ORDER: Record<string, number> = {
   eftermiddag: 2,
   snabbnotering: 3,
 };
-const MEAL_PREFIX_BY_SLOT: Record<string, string> = {
-  morgon: "Frukost",
-  lunch: "Lunch",
-  eftermiddag: "Mellanmål",
+
+const SLOT_FIELD_LABELS: Record<
+  "morgon" | "lunch" | "eftermiddag",
+  { period: string; meal: string }
+> = {
+  morgon: { period: "Sömn", meal: "Frukost" },
+  lunch: { period: "Förmiddagen", meal: "Lunch" },
+  eftermiddag: { period: "Eftermiddagen", meal: "Mellanmål" },
 };
 
 type DailyUpdate = {
   id: string;
   slot: string;
+  period_note: string | null;
+  meal_note: string | null;
   mood: string | null;
-  sleep: string | null;
   energy: string | null;
-  meal_eaten: string | null;
-  period_summary: string | null;
-  free_text: string;
+  free_text: string | null;
   created_at: string;
   authorName: string;
 };
@@ -185,37 +173,25 @@ function formatDateGroup(iso: string): string {
   }).format(new Date(iso));
 }
 
-function renderSlotDetail(u: DailyUpdate): string {
-  switch (u.slot) {
-    case "morgon": {
-      const parts: string[] = [];
-      if (u.mood) parts.push(MOOD_LABEL[u.mood] ?? u.mood);
-      if (u.sleep) parts.push(`Sömn ${SLEEP_LABEL[u.sleep] ?? u.sleep}`);
-      if (u.meal_eaten)
-        parts.push(
-          `${MEAL_PREFIX_BY_SLOT.morgon} ${MEAL_LABEL[u.meal_eaten] ?? u.meal_eaten}`,
-        );
-      if (u.energy) parts.push(`Energi ${ENERGY_LABEL[u.energy] ?? u.energy}`);
-      return parts.join(" · ");
-    }
-    case "lunch":
-    case "eftermiddag": {
-      const parts: string[] = [];
-      if (u.mood) parts.push(MOOD_LABEL[u.mood] ?? u.mood);
-      if (u.period_summary)
-        parts.push(
-          `Period ${PERIOD_LABEL[u.period_summary] ?? u.period_summary}`,
-        );
-      if (u.meal_eaten)
-        parts.push(
-          `${MEAL_PREFIX_BY_SLOT[u.slot]} ${MEAL_LABEL[u.meal_eaten] ?? u.meal_eaten}`,
-        );
-      if (u.energy) parts.push(`Energi ${ENERGY_LABEL[u.energy] ?? u.energy}`);
-      return parts.join(" · ");
-    }
-    default:
-      return "";
+type SlotLine = { label: string; value: string };
+
+function slotLines(u: DailyUpdate): SlotLine[] {
+  if (
+    u.slot !== "morgon" &&
+    u.slot !== "lunch" &&
+    u.slot !== "eftermiddag"
+  ) {
+    return [];
   }
+  const labels = SLOT_FIELD_LABELS[u.slot];
+  const lines: SlotLine[] = [];
+  if (u.period_note) lines.push({ label: labels.period, value: u.period_note });
+  if (u.meal_note) lines.push({ label: labels.meal, value: u.meal_note });
+  if (u.mood) {
+    lines.push({ label: "Humör", value: LEGACY_MOOD[u.mood] ?? u.mood });
+  }
+  if (u.energy) lines.push({ label: "Energi", value: u.energy });
+  return lines;
 }
 
 function groupUpdatesByDate(
@@ -283,17 +259,23 @@ export async function renderExportPdf(p: RenderExportParams): Promise<Buffer> {
               <Text style={styles.entryMeta}>{dateLabel}</Text>
               {rows.map((u) => {
                 const slotLabel = SLOT_LABEL[u.slot] ?? u.slot;
-                const detail = renderSlotDetail(u);
+                const lines = slotLines(u);
                 return (
                   <View key={u.id} style={styles.entry} wrap={false}>
                     <Text style={styles.entryMeta}>
                       {slotLabel} · {formatTimeOnly(u.created_at)} ·{" "}
                       {u.authorName}
                     </Text>
-                    {detail ? (
-                      <Text style={styles.entryDetail}>{detail}</Text>
+                    {lines.length > 0
+                      ? lines.map((l) => (
+                          <Text key={l.label} style={styles.entryDetail}>
+                            {l.label} · {l.value}
+                          </Text>
+                        ))
+                      : null}
+                    {u.free_text ? (
+                      <Text style={styles.body}>{u.free_text}</Text>
                     ) : null}
-                    <Text style={styles.body}>{u.free_text}</Text>
                   </View>
                 );
               })}

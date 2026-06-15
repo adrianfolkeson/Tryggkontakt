@@ -83,7 +83,7 @@ export async function POST(request: Request) {
   const { data: updatesData } = await supabase
     .from("daily_update")
     .select(
-      "id, slot, mood, sleep, energy, meal_eaten, period_summary, free_text, created_at, author_user_id",
+      "id, slot, period_note, meal_note, mood, energy, free_text, created_at, author_user_id",
     )
     .eq("circle_id", membership.circle_id)
     .gte("created_at", startUtc)
@@ -107,11 +107,10 @@ export async function POST(request: Request) {
   const updates = (updatesData ?? []).map((u) => ({
     id: u.id,
     slot: u.slot,
+    period_note: u.period_note,
+    meal_note: u.meal_note,
     mood: u.mood,
-    sleep: u.sleep,
     energy: u.energy,
-    meal_eaten: u.meal_eaten,
-    period_summary: u.period_summary,
     free_text: u.free_text,
     created_at: u.created_at,
     authorName: authorNameByUserId.get(u.author_user_id) || "(okänd)",

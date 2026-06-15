@@ -10,12 +10,10 @@ type Slot = (typeof VALID_SLOTS)[number];
 type ExistingRow = {
   id: string;
   slot: string;
+  period_note: string | null;
+  meal_note: string | null;
   mood: string | null;
-  sleep: string | null;
   energy: string | null;
-  meal_eaten: string | null;
-  period_summary: string | null;
-  free_text: string;
   relatives_only: boolean;
   author_user_id: string;
 };
@@ -65,7 +63,7 @@ export default async function NyUppdateringPage({
     const { data } = await supabase
       .from("daily_update")
       .select(
-        "id, slot, mood, sleep, energy, meal_eaten, period_summary, free_text, relatives_only, author_user_id",
+        "id, slot, period_note, meal_note, mood, energy, relatives_only, author_user_id",
       )
       .eq("id", sp.id)
       .eq("circle_id", membership.circle_id)
