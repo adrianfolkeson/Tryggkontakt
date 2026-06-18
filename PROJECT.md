@@ -271,6 +271,7 @@ Inte aspirationer, krav som testas i CI där det går.
 - Självbetjäning i appen (under *Inställningar*):
   - **Dataportabilitet (Art 20):** ”Exportera all min data” laddar ner en JSON-fil med användarens egna uppdateringar, schema-poster, påminnelser, inbjudningar och profil. Innehåll som andra i kretsen skapat ingår inte i exporten.
   - **Rätt till radering (Art 17):** ”Ta bort mitt konto” kräver att användaren skriver bekräftelsetexten **TA BORT** och kör därefter en atomisk RPC som raderar alla rader användaren skrivit, deras kretsmedlemskap, profil och `auth.users`-raden. Kretsar som blir tomma efter raderingen städas också bort. Sessionen avslutas direkt och användaren landar på inloggningssidan med en kort bekräftelse.
+- Personuppgiftspolicy publicerad på `/integritet`. Aktuell version är ett utkast (1.0-utkast, 2026-06-15) som ligger ute med en synlig "under juridisk granskning"-banner i väntan på dataskydd-juristens granskning. Innehållet baseras på de faktiska dataflödena i koden (Supabase EU, Vercel EU, Resend USA under SCC) — uppdatera policyn samtidigt med eventuella underbiträdesbyten.
 - DPIA (konsekvensbedömning) genomförs innan lansering — vår användargrupp räknas som särskilt skyddsvärd
 
 ---
