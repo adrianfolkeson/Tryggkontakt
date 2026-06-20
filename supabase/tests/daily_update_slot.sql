@@ -1,4 +1,7 @@
--- Slot-based daily_update smoke. Six cases.
+-- Slot-based daily_update smoke. Four cases (was six pre-F5; the
+-- per-slot non-null CHECK was dropped in F5 so the assertion that
+-- rejected morgon-without-sleep is no longer meaningful — removed
+-- in §0.7).
 -- Wrapped in begin; rollback; — no fixtures linger.
 
 begin;
@@ -31,34 +34,17 @@ insert into circle_member (circle_id, user_id, role, valid_from, valid_to) value
    '22222222-2222-2222-2222-222222222222','staff',
    now() - interval '1 day', null);
 
-\echo '---test 1: INSERT morgon with all required fields (expect INSERT 0 1)---'
+\echo '---test 1: INSERT morgon with structured fields (expect INSERT 0 1)---'
 savepoint sp1;
 insert into daily_update
-  (circle_id, author_user_id, slot, mood, sleep, energy, meal_eaten, free_text)
+  (circle_id, author_user_id, slot, mood, energy)
 values
   ('cccccccc-cccc-cccc-cccc-cccccccccccc',
    '11111111-1111-1111-1111-111111111111',
-   'morgon', 'calm', 'good', 'medium', 'ja', 'Morgon ok');
+   'morgon', 'Glad', 'Hög');
 
-\echo '---test 2: INSERT morgon without sleep (expect CHECK violation)---'
+\echo '---test 2: INSERT snabbnotering with only free_text (expect INSERT 0 1)---'
 savepoint sp2;
-do $$
-begin
-  insert into daily_update
-    (circle_id, author_user_id, slot, mood, energy, meal_eaten, free_text)
-  values
-    ('cccccccc-cccc-cccc-cccc-cccccccccccc',
-     '11111111-1111-1111-1111-111111111111',
-     'morgon', 'calm', 'medium', 'ja', 'Missing sleep');
-  raise notice 'unexpectedly succeeded';
-exception when others then
-  raise notice 'caught: %', sqlerrm;
-end;
-$$;
-rollback to savepoint sp2;
-
-\echo '---test 3: INSERT snabbnotering with only free_text (expect INSERT 0 1)---'
-savepoint sp3;
 insert into daily_update
   (circle_id, author_user_id, slot, free_text)
 values
@@ -66,33 +52,24 @@ values
    '11111111-1111-1111-1111-111111111111',
    'snabbnotering', 'Snabb anteckning');
 
-\echo '---test 4: INSERT snabbnotering with mood/sleep/energy also set (expect INSERT 0 1)---'
-savepoint sp4;
-insert into daily_update
-  (circle_id, author_user_id, slot, mood, sleep, energy, free_text)
-values
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc',
-   '11111111-1111-1111-1111-111111111111',
-   'snabbnotering', 'happy', 'good', 'high', 'Snabb med extra fält');
-
-\echo '---test 5: second morgon row same Stockholm day (expect unique-index violation)---'
-savepoint sp5;
+\echo '---test 3: second morgon row same Stockholm day (expect unique-index violation)---'
+savepoint sp3;
 do $$
 begin
   insert into daily_update
-    (circle_id, author_user_id, slot, mood, sleep, energy, meal_eaten, free_text)
+    (circle_id, author_user_id, slot, mood, energy)
   values
     ('cccccccc-cccc-cccc-cccc-cccccccccccc',
      '11111111-1111-1111-1111-111111111111',
-     'morgon', 'tired', 'poor', 'low', 'nej', 'Dubblerad morgon');
+     'morgon', 'Trött', 'Låg');
   raise notice 'unexpectedly succeeded';
 exception when others then
   raise notice 'caught: %', sqlerrm;
 end;
 $$;
-rollback to savepoint sp5;
+rollback to savepoint sp3;
 
-\echo '---test 6: relatives_only morgon — staff SELECTs (expect 0 rows)---'
+\echo '---test 4: relatives_only morgon — staff SELECTs (expect 0 rows)---'
 -- Make the morgon row from test 1 relatives_only=true
 update daily_update set relatives_only = true
   where slot = 'morgon'

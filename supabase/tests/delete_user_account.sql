@@ -99,21 +99,22 @@ insert into public.profile_contact (user_id, email, phone) values
   ('bbbbbbb1-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'u_pair_a@test', '0700000002'),
   ('bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'u_pair_b@test', '0700000003');
 
+-- `meal_eaten` column was dropped in §0.6 cleanup.
 insert into public.daily_update
-  (id, circle_id, author_user_id, slot, mood, energy, meal_eaten, free_text)
+  (id, circle_id, author_user_id, slot, mood, energy, free_text)
 values
   ('11111111-1111-1111-1111-aaaaaaaaaaaa',
    '2aaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
    'aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-   'snabbnotering', null, null, null, 'solo note'),
+   'snabbnotering', null, null, 'solo note'),
   ('11111111-1111-1111-1111-bbbbbbbbbbbb',
    '2bbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
    'bbbbbbb1-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-   'snabbnotering', null, null, null, 'pair_a note'),
+   'snabbnotering', null, null, 'pair_a note'),
   ('11111111-1111-1111-1111-cccccccccccc',
    '2bbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
    'bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-   'snabbnotering', null, null, null, 'pair_b note');
+   'snabbnotering', null, null, 'pair_b note');
 
 -- ================================================================
 -- Case 2 (must run first while victim still exists):

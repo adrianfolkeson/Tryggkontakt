@@ -112,25 +112,25 @@ insert into public.profile_contact (user_id, email, phone) values
   ('33333333-3333-3333-3333-333333333333', 'staff_former@test', '0700000003'),
   ('44444444-4444-4444-4444-444444444444', 'coordinator@test',  '0700000004');
 
--- All fixture inserts use slot='snabbnotering' to satisfy the slot
--- CHECK constraint added in 20260604120000_slot_based_daily_update.sql
--- with the minimum required field (free_text). Extra mood/sleep/energy
--- values are harmless under that slot.
+-- All fixture inserts use slot='snabbnotering' which only requires
+-- free_text (per the conditional CHECK added in F5). Extra mood and
+-- energy values are harmless under that slot. The legacy `sleep`
+-- column was dropped in §0.6 cleanup.
 insert into public.daily_update
-  (id, circle_id, author_user_id, slot, mood, sleep, energy, free_text)
+  (id, circle_id, author_user_id, slot, mood, energy, free_text)
 values
   ('cccccccc-cccc-cccc-cccc-cccccccccccc',
    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
    '22222222-2222-2222-2222-222222222222',
-   'snabbnotering','calm','good','medium','Update by staff_active'),
+   'snabbnotering','calm','medium','Update by staff_active'),
   ('dddddddd-dddd-dddd-dddd-dddddddddddd',
    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
    '11111111-1111-1111-1111-111111111111',
-   'snabbnotering','happy','okay','high','Update by relative'),
+   'snabbnotering','happy','high','Update by relative'),
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
    '33333333-3333-3333-3333-333333333333',
-   'snabbnotering','tired','poor','low','Update by staff_former while still active');
+   'snabbnotering','tired','low','Update by staff_former while still active');
 
 -- ================================================================
 -- Switch into the authenticated role for the remaining checks.
@@ -337,11 +337,11 @@ select pg_temp.become('11111111-1111-1111-1111-111111111111');
 do $$
 begin
   insert into public.daily_update
-    (circle_id, author_user_id, slot, mood, sleep, energy, free_text)
+    (circle_id, author_user_id, slot, mood, energy, free_text)
   values
     ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
      '11111111-1111-1111-1111-111111111111',
-     'snabbnotering','calm','good','high','Second relative update');
+     'snabbnotering','calm','high','Second relative update');
   raise notice 'PASS: relative INSERTed own daily_update';
 exception when others then
   raise exception 'FAIL: relative could not INSERT own daily_update (%)', sqlerrm;
@@ -351,11 +351,11 @@ $$;
 do $$
 begin
   insert into public.daily_update
-    (circle_id, author_user_id, slot, mood, sleep, energy, free_text)
+    (circle_id, author_user_id, slot, mood, energy, free_text)
   values
     ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
      '22222222-2222-2222-2222-222222222222',
-     'snabbnotering','happy','okay','medium','spoofed author');
+     'snabbnotering','happy','medium','spoofed author');
   raise exception 'FAIL: relative INSERTed daily_update with spoofed author_user_id';
 exception
   when insufficient_privilege then
@@ -372,11 +372,11 @@ select pg_temp.become('33333333-3333-3333-3333-333333333333');
 do $$
 begin
   insert into public.daily_update
-    (circle_id, author_user_id, slot, mood, sleep, energy, free_text)
+    (circle_id, author_user_id, slot, mood, energy, free_text)
   values
     ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
      '33333333-3333-3333-3333-333333333333',
-     'snabbnotering','tired','poor','low','former trying to insert');
+     'snabbnotering','tired','low','former trying to insert');
   raise exception 'FAIL: former staff INSERTed daily_update';
 exception
   when insufficient_privilege then

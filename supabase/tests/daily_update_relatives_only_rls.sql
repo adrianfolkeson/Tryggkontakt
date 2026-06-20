@@ -47,20 +47,21 @@ insert into circle_member (circle_id, user_id, role, valid_from, valid_to) value
    now() - interval '1 day', null);
 
 -- Two updates by the relative author.
--- Both use slot='snabbnotering' because the slot CHECK constraint only
--- requires free_text on that slot. (The mood/sleep/energy values are
--- harmless extra fields under that slot.)
+-- Both use slot='snabbnotering' because the conditional CHECK only
+-- requires free_text on that slot. Extra mood and energy values are
+-- harmless under that slot. The legacy `sleep` column was dropped
+-- in §0.6 cleanup.
 insert into daily_update
-  (id, circle_id, author_user_id, slot, mood, sleep, energy, free_text, relatives_only)
+  (id, circle_id, author_user_id, slot, mood, energy, free_text, relatives_only)
 values
   ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
    'cccccccc-cccc-cccc-cccc-cccccccccccc',
    '11111111-1111-1111-1111-111111111111',
-   'snabbnotering','calm','good','medium','Restricted', true),
+   'snabbnotering','calm','medium','Restricted', true),
   ('ffffffff-ffff-ffff-ffff-ffffffffffff',
    'cccccccc-cccc-cccc-cccc-cccccccccccc',
    '11111111-1111-1111-1111-111111111111',
-   'snabbnotering','happy','okay','high','Open', false);
+   'snabbnotering','happy','high','Open', false);
 
 set local role authenticated;
 
